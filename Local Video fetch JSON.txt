@@ -1,0 +1,14 @@
+"Local videos fetched................."
+
+{
+"albumId": "-1739773001", 
+"creationTime": 1669449176000, 
+"duration": 6.03, 
+"filename": "VID_20221126_125249.mp4", 
+"height": 1920, 
+"id": "1000000338", 
+"mediaType": "video", 
+"modificationTime": 1669449176000, 
+"uri": "file:///storage/emulated/0/DCIM/Camera/VID_20221126_125249.mp4", 
+"width": 1080
+},

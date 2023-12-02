@@ -1,20 +1,24 @@
 import React, { useState, useRef, useEffect } from "react";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import Slider from "@react-native-community/slider";
+import Slider from "react-native-slider";
 import { Video } from "expo-av";
-import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  MaterialIcons,
+  MaterialCommunityIcons,
+  Ionicons,
+} from "@expo/vector-icons";
 
-const CustomVideoPlayer = ({ videoUri }) => {
+const CustomVideoPlayer = ({ videoUri, vheight, vwidth }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1.0);
   const [videoDuration, setVideoDuration] = useState(0);
   const [currentPosition, setCurrentPosition] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
-  const [showSpeedSlider, setShowSpeedSlider] = useState(false);
+  const [currentVolume, setCurrentVolume] = useState();
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [speedIcon, setSpeedIcon] = useState("speedometer-medium");
+  const [setting, setSetting] = useState(false);
 
   const togglePlayPause = async () => {
     if (!videoRef.current) return;
@@ -34,11 +38,10 @@ const CustomVideoPlayer = ({ videoUri }) => {
     setCurrentPosition(value * videoDuration);
   };
 
-  const changePlaybackSpeed = async (speed) => {
+  const handlePlaybackSpeed = async (speed) => {
     const roundedSpeed = Math.round(speed * 10) / 10; // Round to one decimal point
     if (videoRef.current) {
       await videoRef.current.setRateAsync(roundedSpeed, true);
-      setPlaybackSpeed(roundedSpeed);
       if (roundedSpeed < 1) {
         setSpeedIcon("speedometer-slow");
       } else if (roundedSpeed > 1) {
@@ -46,12 +49,12 @@ const CustomVideoPlayer = ({ videoUri }) => {
       } else {
         setSpeedIcon("speedometer-medium");
       }
+      setPlaybackSpeed(roundedSpeed);
     }
   };
 
   const handleVolumeChange = (value) => {
     if (!videoRef.current) return;
-
     videoRef.current.setVolumeAsync(value);
     setVolume(value);
   };
@@ -91,158 +94,246 @@ const CustomVideoPlayer = ({ videoUri }) => {
     }
   };
   return (
-    <View style={styles.container}>
-      <Video
-        ref={videoRef}
-        source={{ uri: videoUri }}
-        style={styles.video}
-        resizeMode="contain"
-        isLooping={false}
-        onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-        volume={volume}
-        onFullscreenUpdate={handleFullscreenUpdate}
-      />
-
-      <View style={styles.controls}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "white",
+      }}
+    >
+      {/* /////////////////// Video View/////////////////////////// */}
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "white",
+        }}
+      >
+        <Video
+          ref={videoRef}
+          source={{ uri: videoUri }}
+          style={[styles.video, { height: 400, width: 300 }]}
+          resizeMode="contain"
+          isLooping={false}
+          onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+          volume={volume}
+          onFullscreenUpdate={handleFullscreenUpdate}
+        />
+      </View>
+      {/* ///////////END//////// Video View/////////////////////////// */}
+      {/* //////////////////////Contorls Area//////////////////////// */}
+      <View
+        style={{
+          flex: 0.1,
+          backgroundColor: "rgba(124,147,195,0.9)",
+          justifyContent: "center",
+          alignItems: "center",
+          borderTopRightRadius: 10,
+          borderTopLeftRadius: 10,
+        }}
+      >
+        {/* Controls setting play slider and setting and fullScreen icons */}
         <View
           style={{
             flexDirection: "row",
-            flex: 0.8,
-            justifyContent: "center",
             alignItems: "center",
+            paddingLeft: 6,
           }}
         >
-          <TouchableOpacity onPress={togglePlayPause}>
-            <MaterialIcons
-              name={isPlaying ? "pause" : "play-arrow"}
-              size={30}
-              color="white"
-              style={{ marginHorizontal: -10 }}
-            />
-          </TouchableOpacity>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={1}
-            value={currentPosition / videoDuration}
-            onValueChange={handleSliderChange}
-          />
-          <View style={{ flexDirection: "column", marginLeft: -10 }}>
-            <Text
-              style={{
-                color: "white",
-                fontSize: 12,
-                position: "absolute",
-                bottom: -25,
-                left: -250,
-              }}
-            >
-              {formatTime(currentPosition)}
-            </Text>
-            <View style={{}}></View>
-            <Text
-              style={{
-                color: "black",
-                fontSize: 12,
-                position: "absolute",
-                bottom: -25,
-                left: -35,
-              }}
-            >
-              {formatTime(videoDuration)}
-            </Text>
-          </View>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            flex: 0.2,
-            justifyContent: "flex-end",
-            alignItems: "center",
-          }}
-        >
-          <TouchableOpacity
-            onPress={() => {
-              setShowVolumeSlider(!showVolumeSlider);
-              setShowSpeedSlider(false);
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
             }}
           >
-            <MaterialIcons
-              name={volume > 0 ? "volume-up" : "volume-off"}
-              size={30}
-              color="white"
+            <TouchableOpacity onPress={togglePlayPause}>
+              <MaterialIcons
+                name={isPlaying ? "pause" : "play-arrow"}
+                size={30}
+                color="white"
+                style={{ marginHorizontal: -10 }}
+              />
+            </TouchableOpacity>
+
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={1}
+              value={currentPosition / videoDuration}
+              onValueChange={handleSliderChange}
+              trackStyle={{ height: 10, backgroundColor: "white" }}
+              thumbStyle={{
+                height: 20,
+                width: 10,
+                backgroundColor: "orange",
+              }}
             />
-            <Text style={styles.volumeText}>{Math.round(volume * 100)}%</Text>
-          </TouchableOpacity>
-          {showVolumeSlider && (
-            <View style={styles.volumeSliderContainer}>
-              <Slider
+
+            <View style={{ flexDirection: "column", marginLeft: -10 }}>
+              <Text
                 style={{
-                  width: 100,
-                  height: 30,
-                  transform: [{ rotate: "-90deg" }],
-                  backgroundColor: "#C683D7",
+                  color: "white",
+                  fontSize: 12,
                   position: "absolute",
-                  top: -110,
-                  right: -20,
+                  bottom: -33,
+                  left: -285,
                 }}
+              >
+                {formatTime(currentPosition)}
+              </Text>
+
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 12,
+                  position: "absolute",
+                  bottom: -33,
+                  left: -20,
+                }}
+              >
+                {formatTime(videoDuration)}
+              </Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: "row" }}>
+            <TouchableOpacity
+              onPress={() => {
+                setSetting(!setting);
+              }}
+            >
+              <Ionicons
+                name={setting ? "settings" : "settings-outline"}
+                size={30}
+                color="white"
+              />
+            </TouchableOpacity>
+            <MaterialIcons
+              name={isFullscreen === true ? "fullscreen" : "fullscreen-exit"}
+              size={35}
+              color={"white"}
+              onPress={toggleFullScreenUpdate}
+            />
+          </View>
+        </View>
+        {/* END Controls setting play slider and setting and fullScreen icons */}
+
+        {setting ? (
+          <View
+            style={{
+              width: 160,
+              height: 100,
+              backgroundColor: "rgba(124,147,195,0.5)",
+              position: "absolute",
+              top: -105,
+              right: 10,
+              borderRadius: 10,
+            }}
+          >
+            {/* //////////////////Volume//////////////////////// */}
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => {
+                  setCurrentVolume(volume);
+                  if (volume === 0) {
+                    setVolume(currentVolume);
+                  } else {
+                    setVolume(0);
+                  }
+                }}
+              >
+                <MaterialIcons
+                  name={volume > 0 ? "volume-up" : "volume-off"}
+                  size={30}
+                  color="orange"
+                />
+                <Text style={{ color: "white" }}>
+                  {Math.round(volume * 100)}%
+                </Text>
+              </TouchableOpacity>
+
+              <Slider
+                style={{ width: 120, height: 30 }}
+                step={0.01}
                 minimumValue={0}
                 maximumValue={1}
                 value={volume}
                 onValueChange={handleVolumeChange}
-                thumbTintColor="red"
-                vertical // Set the slider to vertical
+                trackStyle={{
+                  height: 10,
+                  backgroundColor: "orange",
+                }}
+                thumbStyle={{
+                  height: 20,
+                  width: 20,
+                  backgroundColor: "orange",
+                }}
+                // vertical // Set the slider to vertical
               />
             </View>
-          )}
-
-          <TouchableOpacity
-            onPress={() => {
-              setShowSpeedSlider(!showSpeedSlider);
-              setShowVolumeSlider(false);
-            }}
-          >
-            <MaterialCommunityIcons name={speedIcon} size={30} color="white" />
-            <Text
+            {/* ///////////END///////Volume//////////////////////// */}
+            {/* //////////////////Speed//////////////////////// */}
+            <View
               style={{
-                color: "white",
-                fontSize: 14,
-                marginTop: -5,
-                textAlign: "center",
+                flex: 1,
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              {playbackSpeed.toFixed(1)}
-            </Text>
-          </TouchableOpacity>
-          {showSpeedSlider && (
-            <View style={styles.speedSliderContainer}>
-              <Slider
-                style={{
-                  width: 100,
-                  height: 30,
-                  transform: [{ rotate: "-90deg" }],
-                  backgroundColor: "#C683D7",
-                  position: "absolute",
-                  top: -110,
-                  right: -55,
+              <TouchableOpacity
+                onPress={() => {
+                  setSpeedIcon("speedometer-medium");
+                  setPlaybackSpeed(1);
                 }}
+              >
+                <MaterialCommunityIcons
+                  name={speedIcon}
+                  size={30}
+                  color="lightblue"
+                />
+                <Text
+                  style={{
+                    color: "white",
+                    fontSize: 14,
+                    marginTop: -5,
+                    textAlign: "center",
+                  }}
+                >
+                  {playbackSpeed.toFixed(1)}
+                </Text>
+              </TouchableOpacity>
+
+              <Slider
+                style={{ width: 120, height: 30 }}
                 minimumValue={0}
                 maximumValue={2}
+                step={0.1}
                 value={playbackSpeed}
-                onValueChange={changePlaybackSpeed}
-                thumbTintColor="orange"
-                vertical // Set the slider to vertical
+                onValueChange={handlePlaybackSpeed}
+                trackStyle={{ height: 10, backgroundColor: "lightblue" }}
+                thumbStyle={{
+                  height: 20,
+                  width: 20,
+                  backgroundColor: "lightblue",
+                }}
+                //vertical // Set the slider to vertical
               />
             </View>
-          )}
-        </View>
-        <MaterialIcons
-          name={isFullscreen === true ? "fullscreen" : "fullscreen-exit"}
-          size={35}
-          color={"white"}
-          onPress={toggleFullScreenUpdate}
-        />
+            {/* ///////////END///////Speed//////////////////////// */}
+          </View>
+        ) : (
+          <></>
+        )}
       </View>
+      {/* ///////////////////////Controls Area End//////////////////////////// */}
     </View>
   );
 };
@@ -261,46 +352,14 @@ const formatTime = (millis) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   video: {
     flex: 1,
     aspectRatio: 16 / 9,
   },
-  controls: {
-    flexDirection: "row",
-    height: "8%",
-    width: "100%",
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    alignItems: "center",
-    backgroundColor: "#C683D7",
-  },
+
   slider: {
-    flex: 1,
-  },
-  volumeSlider: {
-    flex: 1,
-  },
-  volumeSliderContainer: {
-    position: "absolute",
-    top: 20,
-    right: 20,
-    alignItems: "center",
-  },
-  speedSliderContainer: {
-    position: "absolute",
-    top: 20,
-    right: 20,
-    alignItems: "center",
-  },
-  volumeText: {
-    color: "white",
-    fontSize: 14,
-    marginTop: -5,
+    flex: 0.95,
+    marginLeft: 10,
   },
 });
 

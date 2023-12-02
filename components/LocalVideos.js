@@ -13,7 +13,12 @@ import * as MediaLibrary from "expo-media-library";
 import { useNavigation } from "@react-navigation/native";
 import { Button } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
-import { setStream, setValue } from "../features/playSlice";
+import {
+  setHeight,
+  setStream,
+  setValue,
+  setWidth,
+} from "../features/playSlice";
 
 const LocalVideos = () => {
   const [videos, setVideos] = useState([]);
@@ -32,7 +37,7 @@ const LocalVideos = () => {
     fetchVideos();
     setTimeout(() => {
       setShowLoading(false); // Set loading state to false after the action is complete
-    }, 2000);
+    }, 5000);
   };
 
   useEffect(() => {
@@ -63,7 +68,7 @@ const LocalVideos = () => {
       });
 
       setVideos(assets);
-      console.log("videos fetched.................");
+      console.log("Local videos fetched.................");
       setShowLoading(false);
     } catch (error) {
       console.error("Error fetching videos:", error);
@@ -77,6 +82,8 @@ const LocalVideos = () => {
         onPress={() => {
           console.log(item.uri);
           dispatch(setValue(item.uri));
+          dispatch(setHeight(item.height));
+          dispatch(setWidth(item.width));
           dispatch(setStream("Local"));
           navigation.navigate("Play");
         }}
