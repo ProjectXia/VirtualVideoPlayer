@@ -1,24 +1,41 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import Slider from "react-native-slider";
-import { Video } from "expo-av";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  Dimensions,
+} from "react-native";
+import { Slider } from "react-native-elements";
+import { Video, ResizeMode } from "expo-av";
 import {
   MaterialIcons,
   MaterialCommunityIcons,
   Ionicons,
 } from "@expo/vector-icons";
 
-const CustomVideoPlayer = ({ videoUri, vheight, vwidth }) => {
+const { width: DEVICE_WIDTH, height: DEVICE_HEIGHT } = Dimensions.get("window");
+const BACKGROUND_COLOR = "#FFF8ED";
+const DISABLED_OPACITY = 0.5;
+const FONT_SIZE = 14;
+const LOADING_STRING = "... loading ...";
+const BUFFERING_STRING = "...buffering...";
+const RATE_SCALE = 3.0;
+const VIDEO_CONTAINER_HEIGHT = (DEVICE_HEIGHT * 2.0) / 5.0 - FONT_SIZE * 2;
+
+const CustomVideoPlayer = ({ videoUri, type }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1.0);
   const [videoDuration, setVideoDuration] = useState(0);
   const [currentPosition, setCurrentPosition] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [currentVolume, setCurrentVolume] = useState();
+  const [currentVolume, setCurrentVolume] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [speedIcon, setSpeedIcon] = useState("speedometer-medium");
   const [setting, setSetting] = useState(false);
+  const [videoWidth, setVideoWidth] = useState(Dimensions.get("window").width);
+  const [videoHeight, setVideoHeight] = useState(VIDEO_CONTAINER_HEIGHT); // Assuming VIDEO_CONTAINER_HEIGHT is available
 
   const togglePlayPause = async () => {
     if (!videoRef.current) return;
@@ -93,6 +110,34 @@ const CustomVideoPlayer = ({ videoUri, vheight, vwidth }) => {
         console.log("the fullscreen player just finished dismissing");
     }
   };
+  _onLoad = (status) => {
+    console.log(`ON LOAD : ${JSON.stringify(status)}`);
+  };
+
+  _onError = (error) => {
+    console.log(`ON ERROR : ${error}`);
+  };
+
+  const onReadyForDisplay = (event) => {
+    const { naturalSize } = event;
+    const widestHeight =
+      (Dimensions.get("window").width * naturalSize.height) / naturalSize.width;
+
+    if (widestHeight > VIDEO_CONTAINER_HEIGHT) {
+      setVideoWidth(
+        (VIDEO_CONTAINER_HEIGHT * naturalSize.width) / naturalSize.height
+      );
+      setVideoHeight(VIDEO_CONTAINER_HEIGHT);
+    } else {
+      setVideoWidth(Dimensions.get("window").width);
+      setVideoHeight(
+        (Dimensions.get("window").width * naturalSize.height) /
+          naturalSize.width
+      );
+    }
+    Promise.reject();
+  };
+
   return (
     <View
       style={{
@@ -111,13 +156,33 @@ const CustomVideoPlayer = ({ videoUri, vheight, vwidth }) => {
       >
         <Video
           ref={videoRef}
-          source={{ uri: videoUri }}
-          style={[styles.video, { height: 400, width: 300 }]}
-          resizeMode="contain"
+          source={{
+            uri: videoUri,
+          }}
+          style={{
+            width: "100%",
+            height: "auto",
+            aspectRatio: 16 / 9,
+          }}
           isLooping={false}
           onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
           volume={volume}
-          onFullscreenUpdate={handleFullscreenUpdate}
+          usePoster={true}
+          posterSource={{
+            uri: "https://media3.giphy.com/media/MydKZ8HdiPWALc0Lqf/giphy.gif",
+          }}
+          posterStyle={{
+            width: "100%",
+            height: 300,
+            backgroundColor: "#FFFBF5",
+          }}
+          isBuffering={true}
+          isPlaying={type === "Local" ? false : true}
+          onLoad={this._onLoad}
+          onError={this._onError}
+          resizeMode={ResizeMode.STRETCH}
+          // onReadyForDisplay={this._onReadyForDisplay}
+          //onFullscreenUpdate={handleFullscreenUpdate}
         />
       </View>
       {/* ///////////END//////// Video View/////////////////////////// */}
@@ -152,17 +217,25 @@ const CustomVideoPlayer = ({ videoUri, vheight, vwidth }) => {
                 name={isPlaying ? "pause" : "play-arrow"}
                 size={30}
                 color="white"
-                style={{ marginHorizontal: -10 }}
+                style={{ marginHorizontal: -2 }}
               />
             </TouchableOpacity>
 
             <Slider
-              style={styles.slider}
+              // step={0.01}
               minimumValue={0}
               maximumValue={1}
-              value={currentPosition / videoDuration}
+              value={
+                isNaN(currentPosition / videoDuration)
+                  ? 0
+                  : currentPosition / videoDuration
+              }
               onValueChange={handleSliderChange}
-              trackStyle={{ height: 10, backgroundColor: "white" }}
+              trackStyle={{
+                height: 10,
+                width: 290,
+                backgroundColor: "white",
+              }}
               thumbStyle={{
                 height: 20,
                 width: 10,
@@ -170,7 +243,7 @@ const CustomVideoPlayer = ({ videoUri, vheight, vwidth }) => {
               }}
             />
 
-            <View style={{ flexDirection: "column", marginLeft: -10 }}>
+            <View style={{ flexDirection: "column", marginLeft: 0 }}>
               <Text
                 style={{
                   color: "white",
@@ -226,7 +299,7 @@ const CustomVideoPlayer = ({ videoUri, vheight, vwidth }) => {
               backgroundColor: "rgba(124,147,195,0.5)",
               position: "absolute",
               top: -105,
-              right: 10,
+              right: 20,
               borderRadius: 10,
             }}
           >
@@ -260,7 +333,6 @@ const CustomVideoPlayer = ({ videoUri, vheight, vwidth }) => {
               </TouchableOpacity>
 
               <Slider
-                style={{ width: 120, height: 30 }}
                 step={0.01}
                 minimumValue={0}
                 maximumValue={1}
@@ -268,6 +340,7 @@ const CustomVideoPlayer = ({ videoUri, vheight, vwidth }) => {
                 onValueChange={handleVolumeChange}
                 trackStyle={{
                   height: 10,
+                  width: 120,
                   backgroundColor: "orange",
                 }}
                 thumbStyle={{
@@ -275,7 +348,6 @@ const CustomVideoPlayer = ({ videoUri, vheight, vwidth }) => {
                   width: 20,
                   backgroundColor: "orange",
                 }}
-                // vertical // Set the slider to vertical
               />
             </View>
             {/* ///////////END///////Volume//////////////////////// */}
@@ -312,19 +384,21 @@ const CustomVideoPlayer = ({ videoUri, vheight, vwidth }) => {
               </TouchableOpacity>
 
               <Slider
-                style={{ width: 120, height: 30 }}
                 minimumValue={0}
                 maximumValue={2}
-                step={0.1}
+                step={0.25}
                 value={playbackSpeed}
                 onValueChange={handlePlaybackSpeed}
-                trackStyle={{ height: 10, backgroundColor: "lightblue" }}
+                trackStyle={{
+                  height: 10,
+                  width: 120,
+                  backgroundColor: "lightblue",
+                }}
                 thumbStyle={{
                   height: 20,
                   width: 20,
                   backgroundColor: "lightblue",
                 }}
-                //vertical // Set the slider to vertical
               />
             </View>
             {/* ///////////END///////Speed//////////////////////// */}

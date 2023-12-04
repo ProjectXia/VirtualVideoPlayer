@@ -1,22 +1,17 @@
 import React, { useState } from "react";
-import {
-  View,
-  FlatList,
-  Text,
-  Image,
-  StyleSheet,
-  ActivityIndicator,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
-
-import { Button, Chip } from "react-native-paper";
+import { View, Text, StyleSheet } from "react-native";
+import Toggle from "react-native-toggle-element";
 import LocalVideos from "../components/LocalVideos";
 import StreamingVideos from "../components/StreamingVideos";
+import {
+  MaterialIcons,
+  MaterialCommunityIcons,
+  Ionicons,
+} from "@expo/vector-icons";
 
 const LibraryScreen = () => {
-  const [isLocal, setIsLocal] = useState(true);
-  const [filteredbtn, setFilteredbtn] = useState();
+  const [isLocal, setIsLocal] = useState(false);
+  const [filteredbtn, setFilteredbtn] = useState("video");
 
   const handleToggle = (whichbutton) => {
     setFilteredbtn(whichbutton);
@@ -24,15 +19,60 @@ const LibraryScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={{ marginTop: 50 }}>
-        {/* <Chip
-          style={{ marginBottom: 4 }}
-          icon="information"
-          onPress={() => console.log("Pressed")}
+      <View style={{ marginTop: 25 }}>
+        {/* ///////////// Header/////////////////////// */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
         >
-          Filter
-        </Chip> */}
-        <ScrollView horizontal={true}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 26, fontWeight: "500", color: "#5C5470" }}>
+              Welcome to
+            </Text>
+            <Text
+              style={{
+                fontSize: 23,
+                fontWeight: "500",
+                color: "#5C5470",
+                marginBottom: 10,
+              }}
+            >
+              Virtual Video Player
+            </Text>
+          </View>
+          <View style={{ paddingHorizontal: 5 }}>
+            <Toggle
+              value={!isLocal}
+              onPress={() => {
+                setIsLocal(!isLocal);
+              }}
+              thumbActiveComponent={
+                <MaterialIcons name="live-tv" size={25} color={"white"} />
+              }
+              thumbInActiveComponent={
+                <MaterialIcons name="folder" size={30} color={"white"} />
+              }
+              trackBar={{
+                activeBackgroundColor: "#AE445A",
+                inActiveBackgroundColor: "#5C8374",
+                height: 30,
+                width: 150,
+              }}
+              thumbButton={{
+                inActiveBackgroundColor: "#183D3D",
+                activeBackgroundColor: "#662549",
+                width: 40,
+                height: 40,
+              }}
+            />
+          </View>
+        </View>
+        {/* ///////////////////Header END//////////////// */}
+
+        {/* <ScrollView horizontal={true}>
           <Button
             mode={filteredbtn === "video" ? "contained" : "outlined"}
             style={[styles.button]}
@@ -59,7 +99,7 @@ const LibraryScreen = () => {
           >
             Streaming Youtube
           </Button>
-        </ScrollView>
+        </ScrollView> */}
       </View>
       {isLocal ? <LocalVideos /> : <StreamingVideos />}
     </View>

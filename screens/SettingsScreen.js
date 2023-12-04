@@ -1,10 +1,10 @@
-import { View, Text } from "react-native";
-import React from "react";
+import React, { useState } from "react";
+import { View, StyleSheet, Text } from "react-native";
 
 const SettingsScreen = () => {
   return (
-    <View style={{ flex: 1, alignItems: "stretch", justifyContent: "center" }}>
-      <Text>SettingsScreen</Text>
+    <View style={{ flex: 1, marginTop: 100 }}>
+      <Text>Setting </Text>
     </View>
   );
 };

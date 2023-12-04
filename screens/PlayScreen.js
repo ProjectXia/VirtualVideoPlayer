@@ -8,14 +8,13 @@ import {
 } from "../features/playSlice";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomVideoPlayer from "../components/CustomVideoPlayer";
-import YouTubePlayer from "../components/YouTubePlayer";
 
 const PlayScreen = () => {
   const playSelector = useSelector(selectPlayValue);
   const streamSelector = useSelector(selectStream);
   const heightSelector = useSelector(selectHeight);
   const widthSelector = useSelector(selectWidth);
-
+  console.log(playSelector);
   return (
     <SafeAreaView
       style={{
@@ -25,13 +24,10 @@ const PlayScreen = () => {
       }}
     >
       {streamSelector === "Local" ? (
-        <CustomVideoPlayer
-          videoUri={playSelector}
-          vheight={heightSelector}
-          vwidth={widthSelector}
-        />
+        // https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8  Streaming Url Test
+        <CustomVideoPlayer videoUri={playSelector} type={"Local"} />
       ) : (
-        <YouTubePlayer videoID={playSelector} />
+        <CustomVideoPlayer videoUri={playSelector} type={"URL"} />
       )}
     </SafeAreaView>
   );

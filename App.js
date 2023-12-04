@@ -10,6 +10,7 @@ import LibraryScreen from "./screens/LibraryScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 import PlayScreen from "./screens/PlayScreen";
 import PlaylistScreen from "./screens/PlaylistScreen";
+import FavoritiesScreen from "./screens/FavoritiesScreen";
 
 export default function App() {
   return (
@@ -19,7 +20,7 @@ export default function App() {
           screenOptions={({ route }) => ({
             tabBarIcon: ({ focused, color, size }) => {
               let iconName;
-              if (route.name === "Videos") {
+              if (route.name === "Library") {
                 if (focused) {
                   return <Entypo name={"video"} size={25} color={"#4D3C77"} />;
                 } else {
@@ -38,6 +39,11 @@ export default function App() {
                 return (
                   <MaterialIcons name={iconName} size={25} color="#4D3C77" />
                 );
+              } else if (route.name === "Favorites") {
+                iconName = focused ? "favorite" : "favorite-border";
+                return (
+                  <MaterialIcons name={iconName} size={25} color="#4D3C77" />
+                );
               }
             },
           })}
@@ -46,9 +52,10 @@ export default function App() {
             inactiveTintColor: "gray",
           }}
         >
-          <Tab.Screen name="Videos" component={LibraryScreen} />
+          <Tab.Screen name="Library" component={LibraryScreen} />
           <Tab.Screen name="Playlist" component={PlaylistScreen} />
           <Tab.Screen name="Play" component={PlayScreen} />
+          <Tab.Screen name="Favorites" component={FavoritiesScreen} />
           <Tab.Screen name="Settings" component={SettingsScreen} />
         </Tab.Navigator>
       </NavigationContainer>

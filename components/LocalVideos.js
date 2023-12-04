@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 import { useNavigation } from "@react-navigation/native";
-import { Button } from "react-native-paper";
+import { Button, Card } from "react-native-paper";
+import { Ionicons, Entypo } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setHeight,
@@ -41,7 +42,7 @@ const LocalVideos = () => {
   };
 
   useEffect(() => {
-    requestPermission();
+    // requestPermission();
   }, []);
 
   const requestPermission = async () => {
@@ -77,44 +78,39 @@ const LocalVideos = () => {
 
   const renderVideoItem = ({ item, index }) => {
     return (
-      <TouchableOpacity
-        style={styles.videoItem}
-        onPress={() => {
-          console.log(item.uri);
-          dispatch(setValue(item.uri));
-          dispatch(setHeight(item.height));
-          dispatch(setWidth(item.width));
-          dispatch(setStream("Local"));
-          navigation.navigate("Play");
-        }}
-      >
-        <Image
-          source={{ uri: item.uri }}
-          style={styles.videoThumbnail}
-          resizeMode="cover"
-        />
-
-        <View
-          style={{
-            backgroundColor: "#427D9D",
-            width: "100%",
-            paddingTop: 2,
-            borderBottomLeftRadius: 6,
-            borderBottomRightRadius: 6,
+      <Card style={{ margin: 2, width: 182.5 }}>
+        {/* <Card.Title title="Card Title" subtitle="Card Subtitle" /> */}
+        {/* <Card.Content>
+          <Text variant="titleLarge">Card title</Text>
+          <Text variant="bodyMedium">Card content</Text>
+        </Card.Content> */}
+        <TouchableOpacity
+          onPress={() => {
+            console.log(item.uri);
+            dispatch(setValue(item.uri));
+            dispatch(setHeight(item.height));
+            dispatch(setWidth(item.width));
+            dispatch(setStream("Local"));
+            navigation.navigate("Play");
           }}
         >
-          <Text
-            style={{
-              fontSize: 10,
-              paddingHorizontal: 3,
-              color: "white",
-              textAlign: "center",
-            }}
-          >
-            ({index}) {item.filename}
-          </Text>
-        </View>
-      </TouchableOpacity>
+          <Card.Cover
+            source={{ uri: item.uri }}
+            style={{ height: 120 }}
+            mode="contained"
+          />
+          <Ionicons
+            name="play-circle-outline"
+            color={"red"}
+            size={45}
+            style={{ position: "absolute", top: 35, left: 70 }}
+          />
+        </TouchableOpacity>
+
+        <Card.Actions>
+          <Button>Add to Playlist</Button>
+        </Card.Actions>
+      </Card>
     );
   };
 
@@ -150,13 +146,6 @@ const LocalVideos = () => {
           keyExtractor={(item) => item.id}
           renderItem={renderVideoItem}
           numColumns={2}
-          // Adjust the number of columns as needed
-          refreshing={false}
-          // onEndReached={() => {
-          //   var nextLoading = videoload + 50;
-          //   setVideoLoad(nextLoading);
-          //   fetchVideos();
-          // }}
           extraData={videos}
         />
       </View>
@@ -167,7 +156,7 @@ const LocalVideos = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 10,
+    paddingHorizontal: 0,
     marginTop: 10,
   },
   videoItem: {

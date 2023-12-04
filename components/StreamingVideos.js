@@ -1,84 +1,125 @@
-import React, { useState } from "react";
 import {
   View,
   FlatList,
   Image,
   TextInput,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { Avatar, Button, Card, Text } from "react-native-paper";
-import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
 import { Ionicons, Entypo } from "@expo/vector-icons";
 import { setStream, setValue } from "../features/playSlice";
+import React, { useEffect, useState } from "react";
 
 const LeftContent = (props) => <Avatar.Icon {...props} icon="search-web" />;
 
 const StreamingVideos = () => {
+  const [fileChannelContent, setFileChannelContent] = useState([]);
+  const [fileKidsContent, setFileKidsContent] = useState([]);
+  const [fileSportsContent, setFileSportsContent] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [videos, setVideos] = useState([]);
 
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  const searchVideos = async () => {
-    try {
-      const response = await axios.get(
-        "https://www.googleapis.com/youtube/v3/search",
-        {
-          params: {
-            key: "AIzaSyAMlNGu1majTRYUpaZnMauUQY7YmpLy8nI",
-            q: searchQuery,
-            part: "snippet",
-            maxResults: 25, // Number of results to retrieve (adjust as needed)
-            type: "video",
-          },
-        }
-      );
-
-      if (response.data && response.data.items) {
-        setVideos(response.data.items);
-      }
-    } catch (error) {
-      console.error("Error fetching videos:", error);
-    }
-  };
-
   const renderItem = ({ item }) => {
     return (
-      <Card
-        style={{
-          marginHorizontal: 5,
-          marginVertical: 5,
-          borderWidth: 1.5,
-          borderColor: "gray",
-        }}
-      >
+      <Card style={{ margin: 2, width: 182.5, height: 195, elevation: 1 }}>
+        {/* <Card.Title title="Card Title" subtitle="Card Subtitle" /> */}
+        <Card.Content>
+          <Text style={{ fontSize: 14, fontWeight: "800" }}>{item.name}</Text>
+        </Card.Content>
         <TouchableOpacity
           onPress={() => {
-            dispatch(setValue(item.id.videoId));
+            dispatch(setValue(item.http));
             dispatch(setStream("URL"));
             navigation.navigate("Play");
           }}
         >
-          <Card.Cover source={{ uri: item.snippet.thumbnails.medium.url }} />
-          <Entypo
-            name="youtube"
-            size={60}
+          <Card.Cover
+            source={{
+              uri: item.logo,
+            }}
+            style={{ height: 120 }}
+            mode="contained"
+          />
+          <Ionicons
+            name="play"
             color={"red"}
-            style={{ position: "absolute", top: 60, left: 150 }}
+            size={45}
+            style={{ position: "absolute", top: 35, left: 70 }}
           />
         </TouchableOpacity>
-
-        <Card.Title title={item.snippet.title} />
-        <Card.Content>
-          <Text variant="titleMedium">{item.snippet.title}</Text>
-          <Text variant="bodySmall">{item.snippet.description}</Text>
-        </Card.Content>
       </Card>
     );
   };
+  const fetchData = async (filePathName) => {
+    try {
+      const response = await fetch(
+        "https://github.com/ProjectXia/IP-TV/blob/Carlinhos027-patch-1/streams/channels.m3u8"
+      ); // Assuming filePathName is a valid URL
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const text = await response.text();
+      const lines = text.split("\n");
+      console.log(lines[0]);
+      const parsedData = lines
+        .map((line) => {
+          const parts = line.split(","); // Splitting by the first comma
+          const logo = parts[0]; // Splitting name and logo section
+          const name = parts[1];
+          const url = parts[2]?.trim(); // Assuming the URL is in the third part
+          //console.log(name);
+          return { name, logo, url };
+        })
+        .filter(Boolean);
+
+      setFileChannelContent(parsedData);
+    } catch (err) {
+      console.error("Error fetching or parsing data:", err);
+    }
+  };
+  // const fetchData = async (filePathName) => {
+  //   const response = await fetch(
+  //     "https://github.com/ProjectXia/IP-TV/blob/Carlinhos027-patch-1/streams/channels.m3u8"
+  //   )
+  //     .then((res) => {
+  //       if (!res.ok) {
+  //         throw new Error("Network response was not ok");
+  //       }
+  //       return res.text();
+  //     })
+  //     .then((text) => {
+  //       const lines = text.split("\n");
+
+  //       const filteredLines = [];
+  //       const extinfLiness = [];
+  //       const logo_tv = [];
+
+  //       lines.forEach((line) => {
+  //         const parts = line.split(",");
+  //         extinfLiness.push(parts.length > 1 ? parts[2] : parts[2]);
+  //         filteredLines.push(parts.length > 1 ? parts[3] : parts[3]);
+  //         logo_tv.push(parts.length > 1 ? parts[1] : parts[1]);
+  //         console.log(parts[2]);
+  //       });
+
+  //       const combinedArray = filteredLines.map((http, index) => ({
+  //         http: http,
+  //         name: extinfLiness[index], // Ensure matching extinf or empty string if not available
+  //         logo: logo_tv[index],
+  //       }));
+  //       setFileChannelContent(combinedArray);
+  //     })
+  //     .catch((err) => {});
+  // };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <View style={{ paddingHorizontal: 2 }}>
@@ -94,7 +135,7 @@ const StreamingVideos = () => {
         }}
       >
         <TextInput
-          placeholder="Search youtube videos..."
+          placeholder="Paste streaming url..."
           style={{
             height: 40,
             paddingHorizontal: 10,
@@ -107,15 +148,56 @@ const StreamingVideos = () => {
           onChangeText={(text) => setSearchQuery(text)}
           value={searchQuery}
         />
-        <TouchableOpacity onPress={searchVideos}>
+
+        <TouchableOpacity onPress={() => {}}>
           <Ionicons name="search" size={35} />
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={videos}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.videoId}
-      />
+      <Text
+        style={{
+          fontSize: 10,
+          color: "gray",
+          alignSelf: "center",
+          marginTop: -5,
+        }}
+      >
+        e.g:https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+      </Text>
+      <ScrollView>
+        <View style={{ height: 230, marginVertical: 3 }}>
+          <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
+            Favoritie Channels
+          </Text>
+          <FlatList
+            data={fileChannelContent}
+            renderItem={renderItem}
+            // keyExtractor={(item) => item.id}
+            horizontal={true}
+          />
+        </View>
+        <View style={{ height: 230, marginVertical: 3 }}>
+          <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
+            Kids Channels
+          </Text>
+          <FlatList
+            data={fileKidsContent}
+            renderItem={renderItem}
+            // keyExtractor={(item) => item.id}
+            horizontal={true}
+          />
+        </View>
+        <View style={{ height: 230, marginVertical: 3 }}>
+          <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
+            Sports Channels
+          </Text>
+          <FlatList
+            data={fileSportsContent}
+            renderItem={renderItem}
+            // keyExtractor={(item) => item.id}
+            horizontal={true}
+          />
+        </View>
+      </ScrollView>
     </View>
   );
 };
