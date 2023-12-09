@@ -42,7 +42,7 @@ const LocalVideos = () => {
   };
 
   useEffect(() => {
-    // requestPermission();
+    requestPermission();
   }, []);
 
   const requestPermission = async () => {
@@ -50,7 +50,7 @@ const LocalVideos = () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status === "granted") {
         console.log("Permission granted!");
-        fetchVideos();
+        // fetchVideos();
       } else {
         console.log("Permission denied");
         // Handle permission denied case

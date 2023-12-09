@@ -4,7 +4,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
-  Dimensions,
+  Image,
+  StatusBar,
+  useWindowDimensions,
 } from "react-native";
 import { Slider } from "react-native-elements";
 import { Video, ResizeMode } from "expo-av";
@@ -12,18 +14,11 @@ import {
   MaterialIcons,
   MaterialCommunityIcons,
   Ionicons,
+  Entypo,
 } from "@expo/vector-icons";
+import * as ScreenOrientation from "expo-screen-orientation";
 
-const { width: DEVICE_WIDTH, height: DEVICE_HEIGHT } = Dimensions.get("window");
-const BACKGROUND_COLOR = "#FFF8ED";
-const DISABLED_OPACITY = 0.5;
-const FONT_SIZE = 14;
-const LOADING_STRING = "... loading ...";
-const BUFFERING_STRING = "...buffering...";
-const RATE_SCALE = 3.0;
-const VIDEO_CONTAINER_HEIGHT = (DEVICE_HEIGHT * 2.0) / 5.0 - FONT_SIZE * 2;
-
-const CustomVideoPlayer = ({ videoUri, type }) => {
+const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1.0);
@@ -31,11 +26,11 @@ const CustomVideoPlayer = ({ videoUri, type }) => {
   const [currentPosition, setCurrentPosition] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [currentVolume, setCurrentVolume] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [speedIcon, setSpeedIcon] = useState("speedometer-medium");
   const [setting, setSetting] = useState(false);
-  const [videoWidth, setVideoWidth] = useState(Dimensions.get("window").width);
-  const [videoHeight, setVideoHeight] = useState(VIDEO_CONTAINER_HEIGHT); // Assuming VIDEO_CONTAINER_HEIGHT is available
+  const { height, width } = useWindowDimensions();
+  const [clicked, setClicked] = useState(true);
 
   const togglePlayPause = async () => {
     if (!videoRef.current) return;
@@ -52,6 +47,8 @@ const CustomVideoPlayer = ({ videoUri, type }) => {
     if (!videoRef.current) return;
 
     videoRef.current.setPositionAsync(value * videoDuration);
+    console.log("Video Duration: " + videoDuration);
+    console.log("Video Value: " + value);
     setCurrentPosition(value * videoDuration);
   };
 
@@ -87,55 +84,70 @@ const CustomVideoPlayer = ({ videoUri, type }) => {
       videoRef.current.pauseAsync();
     }
   };
-  const toggleFullScreenUpdate = () => {
+  const toggleFullScreenUpdate = async () => {
     setIsFullscreen(!isFullscreen);
-    if (isFullscreen) {
-      videoRef.current.presentFullscreenPlayer();
+    if (!isFullscreen) {
+      await ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.LANDSCAPE
+      );
+    } else {
+      await ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT
+      );
     }
   };
-  const handleFullscreenUpdate = ({ fullscreenUpdate, status }) => {
+  const handleFullscreenUpdate = async ({ fullscreenUpdate, status }) => {
     // console.log(fullscreenUpdate);
-    switch (fullscreenUpdate) {
-      case 1:
-        console.log(" the fullscreen player is about to present");
-        break;
-      case 2:
-        console.log("the fullscreen player just finished presenting");
-        break;
-      case 3:
-        console.log("the fullscreen player is about to dismiss");
-        setIsFullscreen(!isFullscreen);
-        break;
-      case 4:
-        console.log("the fullscreen player just finished dismissing");
+    try {
+      switch (fullscreenUpdate) {
+        case 1:
+          console.log("The fullscreen player is about to present");
+
+          break;
+        case 2:
+          console.log("The fullscreen player just finished presenting");
+          // Handle the action after the player finishes presenting
+          break;
+        case 3:
+          console.log("The fullscreen player is about to dismiss");
+          setIsFullscreen(!isFullscreen);
+          break;
+        case 4:
+          console.log("The fullscreen player just finished dismissing");
+          // Handle the action after the player finishes dismissing
+          break;
+        default:
+          // Handle any other cases here
+          break;
+      }
+      return Promise.resolve(); // Resolve the promise after completion
+    } catch (error) {
+      return Promise.reject(error); // Reject the promise if an error occurs
     }
   };
-  _onLoad = (status) => {
-    console.log(`ON LOAD : ${JSON.stringify(status)}`);
+  _onLoad = async (status) => {
+    try {
+      console.log(`ON LOAD: ${JSON.stringify(status)}`);
+      await ScreenOrientation.unlockAsync();
+      // const PPI = 409;
+      // const heightInches = height / PPI;
+      // const widthInches = width / PPI;
+      // console.log(heightInches.toFixed(2));
+      // console.log(widthInches.toFixed(2));
+      // console.log("WW:" + width + " WH: " + height);
+      return Promise.resolve(); // Resolve the promise after completion
+    } catch (error) {
+      return Promise.reject(error); // Reject the promise if an error occurs
+    }
   };
 
   _onError = (error) => {
-    console.log(`ON ERROR : ${error}`);
-  };
-
-  const onReadyForDisplay = (event) => {
-    const { naturalSize } = event;
-    const widestHeight =
-      (Dimensions.get("window").width * naturalSize.height) / naturalSize.width;
-
-    if (widestHeight > VIDEO_CONTAINER_HEIGHT) {
-      setVideoWidth(
-        (VIDEO_CONTAINER_HEIGHT * naturalSize.width) / naturalSize.height
-      );
-      setVideoHeight(VIDEO_CONTAINER_HEIGHT);
-    } else {
-      setVideoWidth(Dimensions.get("window").width);
-      setVideoHeight(
-        (Dimensions.get("window").width * naturalSize.height) /
-          naturalSize.width
-      );
+    try {
+      console.error(`ON ERROR : ${error}`);
+      return Promise.resolve(); // Resolve the promise after completion
+    } catch (error) {
+      return Promise.reject(error); // Reject the promise if an error occurs
     }
-    Promise.reject();
   };
 
   return (
@@ -145,13 +157,21 @@ const CustomVideoPlayer = ({ videoUri, type }) => {
         backgroundColor: "white",
       }}
     >
+      {isFullscreen ? <StatusBar hidden /> : <></>}
       {/* /////////////////// Video View/////////////////////////// */}
-      <View
+      <TouchableOpacity
         style={{
           flex: 1,
+          backgroundColor: "transparent",
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "white",
+        }}
+        onPress={() => {
+          setClicked(true);
+          setTimeout(() => {
+            setClicked(false);
+            setSetting(false);
+          }, 10000);
         }}
       >
         <Video
@@ -160,254 +180,356 @@ const CustomVideoPlayer = ({ videoUri, type }) => {
             uri: videoUri,
           }}
           style={{
-            width: "100%",
-            height: "auto",
-            aspectRatio: 16 / 9,
+            width: width,
+            height: height,
+            borderWidth: 2,
+            borderColor: "orange",
           }}
           isLooping={false}
           onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
           volume={volume}
-          usePoster={true}
+          usePoster={poster}
           posterSource={{
             uri: "https://media3.giphy.com/media/MydKZ8HdiPWALc0Lqf/giphy.gif",
           }}
+          onReadyForDisplay={async (event) => {
+            console.log(event.naturalSize);
+            // switch (event.naturalSize.orientation) {
+            //   case "landscape":
+            //     await ScreenOrientation.lockAsync(
+            //       ScreenOrientation.OrientationLock.PORTRAIT
+            //     );
+            //     setIsFullscreen(false);
+            //     break;
+            //   case "portrait":
+            //     break;
+            // }
+          }}
           posterStyle={{
             width: "100%",
-            height: 300,
-            backgroundColor: "#FFFBF5",
+            height: 250,
           }}
           isBuffering={true}
           isPlaying={type === "Local" ? false : true}
           onLoad={this._onLoad}
           onError={this._onError}
-          resizeMode={ResizeMode.STRETCH}
-          // onReadyForDisplay={this._onReadyForDisplay}
-          //onFullscreenUpdate={handleFullscreenUpdate}
+          resizeMode={ResizeMode.CONTAIN}
+          // onFullscreenUpdate={handleFullscreenUpdate}
         />
-      </View>
-      {/* ///////////END//////// Video View/////////////////////////// */}
-      {/* //////////////////////Contorls Area//////////////////////// */}
-      <View
-        style={{
-          flex: 0.1,
-          backgroundColor: "rgba(124,147,195,0.9)",
-          justifyContent: "center",
-          alignItems: "center",
-          borderTopRightRadius: 10,
-          borderTopLeftRadius: 10,
-        }}
-      >
-        {/* Controls setting play slider and setting and fullScreen icons */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingLeft: 6,
-          }}
-        >
+        {clicked && (
           <View
             style={{
-              flex: 1,
-              flexDirection: "row",
+              width: "100%",
+              height: "100%",
+              position: "absolute",
+              backgroundColor: "rgba(0,0,0,.2)",
+              justifyContent: "space-between",
               alignItems: "center",
             }}
           >
-            <TouchableOpacity onPress={togglePlayPause}>
-              <MaterialIcons
-                name={isPlaying ? "pause" : "play-arrow"}
-                size={30}
-                color="white"
-                style={{ marginHorizontal: -2 }}
-              />
-            </TouchableOpacity>
-
-            <Slider
-              // step={0.01}
-              minimumValue={0}
-              maximumValue={1}
-              value={
-                isNaN(currentPosition / videoDuration)
-                  ? 0
-                  : currentPosition / videoDuration
-              }
-              onValueChange={handleSliderChange}
-              trackStyle={{
-                height: 10,
-                width: 290,
-                backgroundColor: "white",
-              }}
-              thumbStyle={{
-                height: 20,
-                width: 10,
-                backgroundColor: "orange",
-              }}
-            />
-
-            <View style={{ flexDirection: "column", marginLeft: 0 }}>
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: 12,
-                  position: "absolute",
-                  bottom: -33,
-                  left: -285,
-                }}
-              >
-                {formatTime(currentPosition)}
-              </Text>
-
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: 12,
-                  position: "absolute",
-                  bottom: -33,
-                  left: -20,
-                }}
-              >
-                {formatTime(videoDuration)}
-              </Text>
-            </View>
-          </View>
-          <View style={{ flexDirection: "row" }}>
-            <TouchableOpacity
-              onPress={() => {
-                setSetting(!setting);
-              }}
-            >
-              <Ionicons
-                name={setting ? "settings" : "settings-outline"}
-                size={30}
-                color="white"
-              />
-            </TouchableOpacity>
-            <MaterialIcons
-              name={isFullscreen === true ? "fullscreen" : "fullscreen-exit"}
-              size={35}
-              color={"white"}
-              onPress={toggleFullScreenUpdate}
-            />
-          </View>
-        </View>
-        {/* END Controls setting play slider and setting and fullScreen icons */}
-
-        {setting ? (
-          <View
-            style={{
-              width: 160,
-              height: 100,
-              backgroundColor: "rgba(124,147,195,0.5)",
-              position: "absolute",
-              top: -105,
-              right: 20,
-              borderRadius: 10,
-            }}
-          >
-            {/* //////////////////Volume//////////////////////// */}
             <View
               style={{
-                flex: 1,
                 flexDirection: "row",
-                justifyContent: "center",
+                backgroundColor: "rgba(0,0,0,0.4)",
+                paddingVertical: 8,
+                // paddingHorizontal: 40,
+                width: width,
                 alignItems: "center",
+                justifyContent: "space-around",
               }}
             >
               <TouchableOpacity
-                onPress={() => {
-                  setCurrentVolume(volume);
-                  if (volume === 0) {
-                    setVolume(currentVolume);
+                onPress={async () => {
+                  if (isFullscreen) {
+                    await ScreenOrientation.lockAsync(
+                      ScreenOrientation.OrientationLock.PORTRAIT
+                    );
                   } else {
-                    setVolume(0);
+                    await ScreenOrientation.lockAsync(
+                      ScreenOrientation.OrientationLock.LANDSCAPE
+                    );
                   }
+                  setIsFullscreen(!isFullscreen);
+                }}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "white",
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
-                <MaterialIcons
-                  name={volume > 0 ? "volume-up" : "volume-off"}
-                  size={30}
-                  color="orange"
-                />
-                <Text style={{ color: "white" }}>
-                  {Math.round(volume * 100)}%
-                </Text>
+                {isFullscreen ? (
+                  <Ionicons
+                    name="phone-portrait-outline"
+                    size={27}
+                    color={"white"}
+                  />
+                ) : (
+                  <Ionicons
+                    name="phone-landscape-outline"
+                    size={27}
+                    color={"white"}
+                  />
+                )}
               </TouchableOpacity>
-
-              <Slider
-                step={0.01}
-                minimumValue={0}
-                maximumValue={1}
-                value={volume}
-                onValueChange={handleVolumeChange}
-                trackStyle={{
-                  height: 10,
-                  width: 120,
-                  backgroundColor: "orange",
-                }}
-                thumbStyle={{
-                  height: 20,
-                  width: 20,
-                  backgroundColor: "orange",
-                }}
-              />
-            </View>
-            {/* ///////////END///////Volume//////////////////////// */}
-            {/* //////////////////Speed//////////////////////// */}
-            <View
-              style={{
-                flex: 1,
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
               <TouchableOpacity
                 onPress={() => {
-                  setSpeedIcon("speedometer-medium");
-                  setPlaybackSpeed(1);
+                  setSetting(!setting);
+                  setTimeout(() => {
+                    setSetting(false);
+                  }, 5000);
+                }}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "white",
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
-                <MaterialCommunityIcons
-                  name={speedIcon}
-                  size={30}
-                  color="lightblue"
+                <Ionicons
+                  name={setting ? "settings" : "settings-outline"}
+                  size={28}
+                  color={"white"}
                 />
-                <Text
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  borderWidth: 1,
+                  borderColor: "white",
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+                onPress={() => {
+                  setClicked(false);
+                  setSetting(false);
+                }}
+              >
+                <Entypo name="cross" size={32} color={"white"} />
+              </TouchableOpacity>
+            </View>
+            {setting ? (
+              <View
+                style={{
+                  flexDirection: "column",
+                  height: 100,
+                  borderWidth: 0.5,
+                  borderColor: "orange",
+                  position: "absolute",
+                  backgroundColor: "rgba(0,0,0,0.4)",
+                  top: 60,
+                  right: 40,
+                  padding: 2,
+                  borderRadius: 10,
+                  justifyContent: "center",
+                }}
+              >
+                {/* //////////////////Volume//////////////////////// */}
+                <View
                   style={{
-                    color: "white",
-                    fontSize: 14,
-                    marginTop: -5,
-                    textAlign: "center",
+                    flex: 1,
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
                   }}
                 >
-                  {playbackSpeed.toFixed(1)}
-                </Text>
-              </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setCurrentVolume(volume);
+                      if (volume === 0) {
+                        setVolume(currentVolume);
+                      } else {
+                        setVolume(0);
+                      }
+                    }}
+                  >
+                    <MaterialIcons
+                      name={volume > 0 ? "volume-up" : "volume-off"}
+                      size={30}
+                      color="orange"
+                    />
+                    <Text style={{ color: "white" }}>
+                      {Math.round(volume * 100)}%
+                    </Text>
+                  </TouchableOpacity>
 
+                  <Slider
+                    step={0.01}
+                    minimumValue={0}
+                    maximumValue={1}
+                    value={volume}
+                    onValueChange={handleVolumeChange}
+                    trackStyle={{
+                      height: 5,
+                      width: 120,
+                      backgroundColor: "orange",
+                    }}
+                    thumbStyle={{
+                      height: 20,
+                      width: 20,
+                      backgroundColor: "orange",
+                    }}
+                  />
+                </View>
+                {/* ///////////END///////Volume//////////////////////// */}
+                {/* //////////////////Speed//////////////////////// */}
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSpeedIcon("speedometer-medium");
+                      setPlaybackSpeed(1);
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name={speedIcon}
+                      size={30}
+                      color="lightblue"
+                    />
+                    <Text
+                      style={{
+                        color: "white",
+                        fontSize: 14,
+                        marginTop: -5,
+                        textAlign: "center",
+                      }}
+                    >
+                      {playbackSpeed.toFixed(1)}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <Slider
+                    minimumValue={0}
+                    maximumValue={2}
+                    step={0.25}
+                    value={playbackSpeed}
+                    onValueChange={handlePlaybackSpeed}
+                    trackStyle={{
+                      height: 5,
+                      width: 120,
+                      backgroundColor: "lightblue",
+                    }}
+                    thumbStyle={{
+                      height: 20,
+                      width: 20,
+                      backgroundColor: "lightblue",
+                    }}
+                  />
+                </View>
+                {/* ///////////END///////Speed//////////////////////// */}
+              </View>
+            ) : (
+              <></>
+            )}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-around",
+                width: width,
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => {
+                  //seek back
+                }}
+              >
+                <Image
+                  source={require("../assets/backward.png")}
+                  style={{ width: 40, height: 40, tintColor: "white" }}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={togglePlayPause}>
+                <Image
+                  source={
+                    isPlaying
+                      ? require("../assets/pause.png")
+                      : require("../assets/play-button.png")
+                  }
+                  style={{
+                    width: 40,
+                    height: 40,
+                    tintColor: "white",
+                  }}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  // seek forward
+                  videoRef.current.setPositionAsync;
+                }}
+              >
+                <Image
+                  source={require("../assets/forward.png")}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    tintColor: "white",
+                  }}
+                />
+              </TouchableOpacity>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                backgroundColor: "rgba(0,0,0,0.6)",
+                width: "100%",
+                padding: 10,
+              }}
+            >
               <Slider
+                // step={0.01}
                 minimumValue={0}
-                maximumValue={2}
-                step={0.25}
-                value={playbackSpeed}
-                onValueChange={handlePlaybackSpeed}
+                maximumValue={1}
+                value={
+                  isNaN(currentPosition / videoDuration)
+                    ? 0
+                    : currentPosition / videoDuration
+                }
+                onValueChange={handleSliderChange}
                 trackStyle={{
-                  height: 10,
-                  width: 120,
-                  backgroundColor: "lightblue",
+                  height: 5,
+                  width: width - 30,
+                  backgroundColor: "white",
                 }}
                 thumbStyle={{
-                  height: 20,
-                  width: 20,
-                  backgroundColor: "lightblue",
+                  height: 14,
+                  width: 8,
+                  backgroundColor: "orange",
                 }}
               />
+              <View style={{ position: "absolute", left: 10 }}>
+                <Text style={{ color: "white" }}>
+                  {formatTime(currentPosition)}
+                </Text>
+              </View>
+              <View style={{ position: "absolute", right: 15 }}>
+                <Text style={{ color: "white" }}>
+                  {formatTime(videoDuration)}
+                </Text>
+              </View>
             </View>
-            {/* ///////////END///////Speed//////////////////////// */}
           </View>
-        ) : (
-          <></>
+          /////////////////////////Controls//////////////////////
         )}
-      </View>
-      {/* ///////////////////////Controls Area End//////////////////////////// */}
+      </TouchableOpacity>
+      {/* ///////////END//////// Video View/////////////////////////// */}
     </View>
   );
 };

@@ -26,23 +26,6 @@ const PlaylistScreen = () => {
         })
         .then((text) => {
           const lines = text.split("\n");
-
-          // const regex = /^http.*\.m3u8$/;
-
-          // // Filter lines that match the pattern
-          // const filteredLines = lines.filter((line) => regex.test(line));
-          // setHttpsLinks(filteredLines);
-          // const extinfLiness = lines.map((line) => {
-          //   const parts = line.split("#EXTINF:-1,");
-          //   return parts.length > 1 ? parts[1] : "";
-          // });
-          // setExtInfLines(extinfLiness);
-
-          // // Combine filteredLines and extinfLiness into a single array
-          // const combinedArray = [
-          //   { http: filteredLines },
-          //   { name: extinfLiness },
-          // ];
           const regexHttp = /^http.*\.m3u8$/;
           const regexExtinf = /^#EXTINF/;
 

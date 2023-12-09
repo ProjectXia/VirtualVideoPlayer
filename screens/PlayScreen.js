@@ -14,7 +14,7 @@ const PlayScreen = () => {
   const streamSelector = useSelector(selectStream);
   const heightSelector = useSelector(selectHeight);
   const widthSelector = useSelector(selectWidth);
-  console.log(playSelector);
+  //console.log(playSelector);
   return (
     <SafeAreaView
       style={{
@@ -25,9 +25,15 @@ const PlayScreen = () => {
     >
       {streamSelector === "Local" ? (
         // https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8  Streaming Url Test
-        <CustomVideoPlayer videoUri={playSelector} type={"Local"} />
+        <CustomVideoPlayer
+          videoUri={playSelector}
+          type={"Local"}
+          poster={false}
+          vw={widthSelector}
+          vh={heightSelector}
+        />
       ) : (
-        <CustomVideoPlayer videoUri={playSelector} type={"URL"} />
+        <CustomVideoPlayer videoUri={playSelector} type={"URL"} poster={true} />
       )}
     </SafeAreaView>
   );

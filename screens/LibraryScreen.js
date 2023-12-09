@@ -1,21 +1,26 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import Toggle from "react-native-toggle-element";
 import LocalVideos from "../components/LocalVideos";
 import StreamingVideos from "../components/StreamingVideos";
-import {
-  MaterialIcons,
-  MaterialCommunityIcons,
-  Ionicons,
-} from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
+import * as ScreenOrientation from "expo-screen-orientation";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 
 const LibraryScreen = () => {
   const [isLocal, setIsLocal] = useState(false);
-  const [filteredbtn, setFilteredbtn] = useState("video");
+  const isFocused = useIsFocused();
 
-  const handleToggle = (whichbutton) => {
-    setFilteredbtn(whichbutton);
-  };
+  useFocusEffect(
+    React.useCallback(() => {
+      async function doPortrait() {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT
+        );
+      }
+      doPortrait();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -71,35 +76,6 @@ const LibraryScreen = () => {
           </View>
         </View>
         {/* ///////////////////Header END//////////////// */}
-
-        {/* <ScrollView horizontal={true}>
-          <Button
-            mode={filteredbtn === "video" ? "contained" : "outlined"}
-            style={[styles.button]}
-            icon={filteredbtn === "video" ? "video" : "video"}
-            onPress={() => {
-              setIsLocal(true);
-              handleToggle("video");
-              // setFilter(MediaLibrary.MediaType.video);
-              // handleLoadItemOnFilter();
-            }}
-          >
-            Local Video
-          </Button>
-          <Button
-            mode={filteredbtn === "audio" ? "contained" : "outlined"}
-            style={[styles.button]}
-            icon={filteredbtn === "audio" ? "play" : "play"}
-            onPress={() => {
-              handleToggle("audio");
-              setIsLocal(false);
-              // setFilter(MediaLibrary.MediaType.audio);
-              // handleLoadItemOnFilter();
-            }}
-          >
-            Streaming Youtube
-          </Button>
-        </ScrollView> */}
       </View>
       {isLocal ? <LocalVideos /> : <StreamingVideos />}
     </View>
