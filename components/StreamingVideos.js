@@ -1,11 +1,4 @@
-import {
-  View,
-  FlatList,
-  Image,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
+import { View, FlatList, TextInput, TouchableOpacity } from "react-native";
 import { Card, Text } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
@@ -88,79 +81,102 @@ const StreamingVideos = () => {
       </Card>
     );
   };
+  const fetchNewsData = async () => {
+    try {
+      const response = await fetch(
+        "https://raw.githubusercontent.com/ProjectXia/images/main/channels.m3u8"
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const text = await response.text();
+      const lines = text.split("\n");
+      const parsedData = lines
+        .map((line) => {
+          if (line.length < 1) {
+            return;
+          }
+          const parts = line.split(","); // Splitting by the first comma
+          const logo = parts[0]; // Splitting name and logo section
+          const name = parts[1];
+          const http = parts[2]?.trim(); // Assuming the URL is in the third part
+          return { name, logo, http };
+        })
+        .filter(Boolean);
+      setFileChannelContent(parsedData);
+      console.log("Channels: " + parsedData.length);
+    } catch (error) {
+      console.error("Error fetching the file:", error);
+    }
+  };
+  const fetchKidsData = async () => {
+    try {
+      const response = await fetch(
+        "https://raw.githubusercontent.com/ProjectXia/images/main/kids.m3u8"
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const text = await response.text();
+      const lines = text.split("\n");
+      const parsedData = lines
+        .map((line) => {
+          if (line.length < 1) {
+            return;
+          }
+          const parts = line.split(","); // Splitting by the first comma
+          const logo = parts[0]; // Splitting name and logo section
+          const name = parts[1];
+          const http = parts[2]?.trim(); // Assuming the URL is in the third part
+          return { name, logo, http };
+        })
+        .filter(Boolean);
+      console.log("Kids: " + parsedData.length);
+      setFileKidsContent(parsedData);
+    } catch (error) {
+      console.error("Error fetching the file:", error);
+    }
+  };
+  // const fetchSportsData = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       "https://raw.githubusercontent.com/ProjectXia/images/main/sports.m3u8"
+  //     );
+  //     if (!response.ok) {
+  //       throw new Error("Network response was not ok");
+  //     }
+  //     const text = await response.text();
+  //     const lines = text.split("\n");
+  //     const parsedData = lines
+  //       .map((line) => {
+  //         if (line.length < 1) {
+  //           return;
+  //         }
+  //         const parts = line.split(","); // Splitting by the first comma
+  //         const logo = parts[0]; // Splitting name and logo section
+  //         const name = parts[1];
+  //         const http = parts[2]?.trim(); // Assuming the URL is in the third part
+  //         return { name, logo, http };
+  //       })
+  //       .filter(Boolean);
+  //     setFileSportsContent(parsedData);
+  //     console.log("Sports: " + parsedData.length);
+  //   } catch (error) {
+  //     console.error("Error fetching the file:", error);
+  //   }
+  // };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(
-          "https://raw.githubusercontent.com/ProjectXia/images/main/channels.m3u8"
-        );
+  const fetchSportsData = () => {
+    fetch(
+      "https://raw.githubusercontent.com/ProjectXia/images/main/sports.m3u8"
+    )
+      .then((response) => {
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
-        const text = await response.text();
-        const lines = text.split("\n");
-        const parsedData = lines
-          .map((line) => {
-            if (line.length < 1) {
-              return;
-            }
-            const parts = line.split(","); // Splitting by the first comma
-            const logo = parts[0]; // Splitting name and logo section
-            const name = parts[1];
-            const http = parts[2]?.trim(); // Assuming the URL is in the third part
-            return { name, logo, http };
-          })
-          .filter(Boolean);
-        setFileChannelContent(parsedData);
-        console.log("Channels: " + parsedData.length);
-      } catch (error) {
-        console.error("Error fetching the file:", error);
-      }
-    };
-    fetchData();
-  }, []);
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(
-          "https://raw.githubusercontent.com/ProjectXia/images/main/kids.m3u8"
-        );
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const text = await response.text();
-        const lines = text.split("\n");
-        const parsedData = lines
-          .map((line) => {
-            if (line.length < 1) {
-              return;
-            }
-            const parts = line.split(","); // Splitting by the first comma
-            const logo = parts[0]; // Splitting name and logo section
-            const name = parts[1];
-            const http = parts[2]?.trim(); // Assuming the URL is in the third part
-            return { name, logo, http };
-          })
-          .filter(Boolean);
-        console.log("Kids: " + parsedData.length);
-        setFileKidsContent(parsedData);
-      } catch (error) {
-        console.error("Error fetching the file:", error);
-      }
-    };
-    fetchData();
-  }, []);
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(
-          "https://raw.githubusercontent.com/ProjectXia/images/main/sports.m3u8"
-        );
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const text = await response.text();
+        return response.text();
+      })
+      .then((text) => {
         const lines = text.split("\n");
         const parsedData = lines
           .map((line) => {
@@ -176,11 +192,16 @@ const StreamingVideos = () => {
           .filter(Boolean);
         setFileSportsContent(parsedData);
         console.log("Sports: " + parsedData.length);
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error("Error fetching the file:", error);
-      }
-    };
-    fetchData();
+      });
+  };
+
+  useEffect(() => {
+    fetchNewsData();
+    fetchKidsData();
+    fetchSportsData();
   }, []);
 
   return (
@@ -229,15 +250,26 @@ const StreamingVideos = () => {
           color: "gray",
           alignSelf: "center",
           marginTop: -5,
-          marginBottom: 25,
+          marginBottom: 10,
         }}
       >
         e.g:https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
       </Text>
-      <View style={{ height: 175, marginVertical: 3 }}>
-        <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
-          NEWS Channels [{fileChannelContent.length}]
-        </Text>
+      <View style={{ height: 180, marginVertical: 3 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
+            NEWS Channels [{fileChannelContent.length}]
+          </Text>
+          <TouchableOpacity onPress={fetchNewsData}>
+            <Ionicons name="refresh-circle-outline" size={35} color={"gray"} />
+          </TouchableOpacity>
+        </View>
         <FlatList
           data={fileChannelContent}
           renderItem={renderItem}
@@ -245,10 +277,21 @@ const StreamingVideos = () => {
           horizontal={true}
         />
       </View>
-      <View style={{ height: 175, marginVertical: 3 }}>
-        <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
-          Kids Channels [{fileKidsContent.length}]
-        </Text>
+      <View style={{ height: 180, marginVertical: 3 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
+            Kids Channels [{fileKidsContent.length}]
+          </Text>
+          <TouchableOpacity onPress={fetchKidsData}>
+            <Ionicons name="refresh-circle-outline" size={35} color={"gray"} />
+          </TouchableOpacity>
+        </View>
         <FlatList
           data={fileKidsContent}
           renderItem={renderItem}
@@ -256,10 +299,21 @@ const StreamingVideos = () => {
           horizontal={true}
         />
       </View>
-      <View style={{ height: 230, marginVertical: 3 }}>
-        <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
-          Sports Channels [{fileSportsContent.length}]
-        </Text>
+      <View style={{ height: 180, marginVertical: 3 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
+            Sports Channels [{fileSportsContent.length}]
+          </Text>
+          <TouchableOpacity onPress={fetchSportsData}>
+            <Ionicons name="refresh-circle-outline" size={35} color={"gray"} />
+          </TouchableOpacity>
+        </View>
         <FlatList
           data={fileSportsContent}
           renderItem={renderSportsItem}

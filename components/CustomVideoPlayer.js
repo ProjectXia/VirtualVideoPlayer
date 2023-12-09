@@ -18,7 +18,7 @@ import {
 } from "@expo/vector-icons";
 import * as ScreenOrientation from "expo-screen-orientation";
 
-const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
+const CustomVideoPlayer = ({ videoUri, type }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1.0);
@@ -31,6 +31,7 @@ const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
   const [setting, setSetting] = useState(false);
   const { height, width } = useWindowDimensions();
   const [clicked, setClicked] = useState(true);
+  const [poster, setPoster] = useState(true);
 
   const togglePlayPause = async () => {
     if (!videoRef.current) return;
@@ -42,16 +43,42 @@ const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
     }
     setIsPlaying(!isPlaying);
   };
-
   const handleSliderChange = (value) => {
     if (!videoRef.current) return;
-
+    videoRef.current.loadAsync();
     videoRef.current.setPositionAsync(value * videoDuration);
-    console.log("Video Duration: " + videoDuration);
-    console.log("Video Value: " + value);
+    // console.log("Video Duration: " + videoDuration);
+    // console.log("Video Value: " + value);
     setCurrentPosition(value * videoDuration);
   };
+  // Function to seek forward by 10 seconds
+  const seekForward = async () => {
+    if (!videoRef.current) return;
 
+    const currentStatus = await videoRef.current.getStatusAsync();
+
+    const newPosition = Math.min(
+      currentStatus.positionMillis + 10000, // Add 10 seconds in milliseconds
+      currentStatus.durationMillis // Ensure not exceeding video duration
+    );
+
+    videoRef.current.setPositionAsync(newPosition);
+    setCurrentPosition(newPosition);
+  };
+  // Function to seek backward by 10 seconds
+  const seekBackward = async () => {
+    if (!videoRef.current) return;
+
+    const currentStatus = await videoRef.current.getStatusAsync();
+
+    const newPosition = Math.max(
+      currentStatus.positionMillis - 10000, // Subtract 10 seconds in milliseconds
+      0 // Ensure not going below 0
+    );
+
+    videoRef.current.setPositionAsync(newPosition);
+    setCurrentPosition(newPosition);
+  };
   const handlePlaybackSpeed = async (speed) => {
     const roundedSpeed = Math.round(speed * 10) / 10; // Round to one decimal point
     if (videoRef.current) {
@@ -66,13 +93,11 @@ const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
       setPlaybackSpeed(roundedSpeed);
     }
   };
-
   const handleVolumeChange = (value) => {
     if (!videoRef.current) return;
     videoRef.current.setVolumeAsync(value);
     setVolume(value);
   };
-
   const handlePlaybackStatusUpdate = (status) => {
     if (status.isLoaded) {
       setVideoDuration(status.durationMillis);
@@ -84,66 +109,21 @@ const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
       videoRef.current.pauseAsync();
     }
   };
-  const toggleFullScreenUpdate = async () => {
-    setIsFullscreen(!isFullscreen);
-    if (!isFullscreen) {
-      await ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.LANDSCAPE
-      );
-    } else {
-      await ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.PORTRAIT
-      );
-    }
-  };
-  const handleFullscreenUpdate = async ({ fullscreenUpdate, status }) => {
-    // console.log(fullscreenUpdate);
-    try {
-      switch (fullscreenUpdate) {
-        case 1:
-          console.log("The fullscreen player is about to present");
-
-          break;
-        case 2:
-          console.log("The fullscreen player just finished presenting");
-          // Handle the action after the player finishes presenting
-          break;
-        case 3:
-          console.log("The fullscreen player is about to dismiss");
-          setIsFullscreen(!isFullscreen);
-          break;
-        case 4:
-          console.log("The fullscreen player just finished dismissing");
-          // Handle the action after the player finishes dismissing
-          break;
-        default:
-          // Handle any other cases here
-          break;
-      }
-      return Promise.resolve(); // Resolve the promise after completion
-    } catch (error) {
-      return Promise.reject(error); // Reject the promise if an error occurs
-    }
-  };
   _onLoad = async (status) => {
     try {
       console.log(`ON LOAD: ${JSON.stringify(status)}`);
+      setPoster(false);
       await ScreenOrientation.unlockAsync();
-      // const PPI = 409;
-      // const heightInches = height / PPI;
-      // const widthInches = width / PPI;
-      // console.log(heightInches.toFixed(2));
-      // console.log(widthInches.toFixed(2));
-      // console.log("WW:" + width + " WH: " + height);
       return Promise.resolve(); // Resolve the promise after completion
     } catch (error) {
       return Promise.reject(error); // Reject the promise if an error occurs
     }
   };
-
   _onError = (error) => {
     try {
-      console.error(`ON ERROR : ${error}`);
+      setPoster(false);
+      setClicked(false);
+      console.log(`ON ERROR : ${error}`);
       return Promise.resolve(); // Resolve the promise after completion
     } catch (error) {
       return Promise.reject(error); // Reject the promise if an error occurs
@@ -188,34 +168,32 @@ const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
           isLooping={false}
           onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
           volume={volume}
-          usePoster={poster}
+          usePoster={type === "Local" ? false : true}
           posterSource={{
-            uri: "https://media3.giphy.com/media/MydKZ8HdiPWALc0Lqf/giphy.gif",
-          }}
-          onReadyForDisplay={async (event) => {
-            console.log(event.naturalSize);
-            // switch (event.naturalSize.orientation) {
-            //   case "landscape":
-            //     await ScreenOrientation.lockAsync(
-            //       ScreenOrientation.OrientationLock.PORTRAIT
-            //     );
-            //     setIsFullscreen(false);
-            //     break;
-            //   case "portrait":
-            //     break;
-            // }
+            uri: poster
+              ? "https://media3.giphy.com/media/MydKZ8HdiPWALc0Lqf/giphy.gif"
+              : "https://www.stellarinfo.com/blog/wp-content/uploads/2018/05/Media-file-error-in-online-video.png",
           }}
           posterStyle={{
             width: "100%",
-            height: 250,
+            flex: 1,
+            opacity: 0.5,
           }}
           isBuffering={true}
           isPlaying={type === "Local" ? false : true}
           onLoad={this._onLoad}
+          onLoadStart={() => {
+            setPoster(true);
+            if (type === "Local") {
+              setPoster(false);
+            }
+
+            console.log("loading......");
+          }}
           onError={this._onError}
           resizeMode={ResizeMode.CONTAIN}
-          // onFullscreenUpdate={handleFullscreenUpdate}
         />
+        {/* /////////////////////////Controls////////////////////// */}
         {clicked && (
           <View
             style={{
@@ -438,6 +416,7 @@ const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
             ) : (
               <></>
             )}
+            {/* ///////////////// MIDDLE Controls Play , pause, seek */}
             <View
               style={{
                 flexDirection: "row",
@@ -447,7 +426,8 @@ const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
             >
               <TouchableOpacity
                 onPress={() => {
-                  //seek back
+                  //seek backward
+                  seekBackward();
                 }}
               >
                 <Image
@@ -472,7 +452,7 @@ const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
               <TouchableOpacity
                 onPress={() => {
                   // seek forward
-                  videoRef.current.setPositionAsync;
+                  seekForward();
                 }}
               >
                 <Image
@@ -485,6 +465,8 @@ const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
                 />
               </TouchableOpacity>
             </View>
+            {/* //////////////////MIDDLE Controls ENNNNNNNNNNNNND/// */}
+            {/* //////////////////ENDING Controls Time slider and time /// */}
             <View
               style={{
                 flexDirection: "row",
@@ -525,9 +507,10 @@ const CustomVideoPlayer = ({ videoUri, vw, vh, type, poster }) => {
                 </Text>
               </View>
             </View>
+            {/* //////////////////ENDING Controls Time slider and time  ENDDD/// */}
           </View>
-          /////////////////////////Controls//////////////////////
         )}
+        {/* /////////////////////////Controls////////////////////// */}
       </TouchableOpacity>
       {/* ///////////END//////// Video View/////////////////////////// */}
     </View>

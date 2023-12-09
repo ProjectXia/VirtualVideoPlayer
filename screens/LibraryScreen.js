@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import Toggle from "react-native-toggle-element";
 import LocalVideos from "../components/LocalVideos";
 import StreamingVideos from "../components/StreamingVideos";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ScreenOrientation from "expo-screen-orientation";
-import { useFocusEffect, useIsFocused } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
+
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(["new NativeEventEmitter"]); // Ignore log notification by message
+LogBox.ignoreAllLogs(); //Ignore all log notifications
 
 const LibraryScreen = () => {
   const [isLocal, setIsLocal] = useState(false);
-  const isFocused = useIsFocused();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -24,7 +27,7 @@ const LibraryScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={{ marginTop: 25 }}>
+      <View style={{ marginTop: 20 }}>
         {/* ///////////// Header/////////////////////// */}
         <View
           style={{

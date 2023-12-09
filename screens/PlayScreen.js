@@ -27,13 +27,12 @@ const PlayScreen = () => {
         // https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8  Streaming Url Test
         <CustomVideoPlayer
           videoUri={playSelector}
-          type={"Local"}
           poster={false}
           vw={widthSelector}
           vh={heightSelector}
         />
       ) : (
-        <CustomVideoPlayer videoUri={playSelector} type={"URL"} poster={true} />
+        <CustomVideoPlayer videoUri={playSelector} type={"URL"} />
       )}
     </SafeAreaView>
   );
