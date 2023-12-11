@@ -18,7 +18,7 @@ const PlayScreen = () => {
     >
       {streamSelector === "Local" ? (
         // https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8  Streaming Url Test
-        <CustomVideoPlayer videoUri={playSelector} poster={false} />
+        <CustomVideoPlayer videoUri={playSelector} type={"Local"} />
       ) : (
         <CustomVideoPlayer videoUri={playSelector} type={"URL"} />
       )}
