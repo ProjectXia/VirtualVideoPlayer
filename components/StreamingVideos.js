@@ -232,7 +232,6 @@ const StreamingVideos = () => {
           onChangeText={(text) => setSearchQuery(text)}
           value={searchQuery}
         />
-
         <TouchableOpacity
           onPress={() => {
             dispatch(setValue(searchQuery));
@@ -316,7 +315,7 @@ const StreamingVideos = () => {
         </View>
         <FlatList
           data={fileSportsContent}
-          renderItem={renderSportsItem}
+          renderItem={renderItem}
           // keyExtractor={(item) => item.id}
           horizontal={true}
         />

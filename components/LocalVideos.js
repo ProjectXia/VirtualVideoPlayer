@@ -4,22 +4,21 @@ import {
   View,
   FlatList,
   Text,
-  Image,
   StyleSheet,
-  ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
 import * as MediaLibrary from "expo-media-library";
 import { useNavigation } from "@react-navigation/native";
 import { Button, Card } from "react-native-paper";
-import { Ionicons, Entypo } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
+import { setStream, setValue } from "../features/playSlice";
+import { addToPlaylist } from "../features/playlistSlice";
 import {
-  setHeight,
-  setStream,
-  setValue,
-  setWidth,
-} from "../features/playSlice";
+  addTofavlist,
+  removeFromfavlist,
+  selectfavlistItems,
+} from "../features/favoritiesSlice";
 
 const LocalVideos = () => {
   const [videos, setVideos] = useState([]);
@@ -28,6 +27,7 @@ const LocalVideos = () => {
   const [filter, setFilter] = useState(MediaLibrary.MediaType.video);
 
   const navigation = useNavigation();
+  const allfavlist = useSelector(selectfavlistItems);
   const dispatch = useDispatch();
 
   const handleButtonPress = () => {
@@ -67,7 +67,6 @@ const LocalVideos = () => {
         mediaType: filter,
         first: videoload,
       });
-
       setVideos(assets);
       console.log("Local videos fetched.................");
       setShowLoading(false);
@@ -77,19 +76,15 @@ const LocalVideos = () => {
   };
 
   const renderVideoItem = ({ item, index }) => {
+    const isItemFavorite = allfavlist.some(
+      (element) => element.http === item.uri
+    );
     return (
       <Card style={{ margin: 2, width: 182.5 }}>
-        {/* <Card.Title title="Card Title" subtitle="Card Subtitle" /> */}
-        {/* <Card.Content>
-          <Text variant="titleLarge">Card title</Text>
-          <Text variant="bodyMedium">Card content</Text>
-        </Card.Content> */}
         <TouchableOpacity
           onPress={() => {
             console.log(item.uri);
             dispatch(setValue(item.uri));
-            dispatch(setHeight(item.height));
-            dispatch(setWidth(item.width));
             dispatch(setStream("Local"));
             navigation.navigate("Play");
           }}
@@ -108,7 +103,58 @@ const LocalVideos = () => {
         </TouchableOpacity>
 
         <Card.Actions>
-          <Button>Add to Playlist</Button>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-around",
+              width: 170,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                const data = {
+                  id: index,
+                  logo: item.uri,
+                  name: item.filename,
+                  http: item.uri,
+                };
+                // console.log(data);
+                dispatch(addToPlaylist(data));
+              }}
+            >
+              <MaterialIcons name="playlist-add" size={30} color={"green"} />
+              <Text style={{ fontSize: 8, marginTop: -5 }}>Playlist</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                const data = {
+                  id: index,
+                  logo: item.uri,
+                  name: item.filename,
+                  http: item.uri,
+                  isfav: true,
+                };
+                //console.log(data);
+                if (isItemFavorite) {
+                  dispatch(removeFromfavlist({ id: index }));
+                } else {
+                  dispatch(addTofavlist(data));
+                }
+              }}
+            >
+              {isItemFavorite ? (
+                <MaterialIcons name={"favorite"} size={30} color={"red"} />
+              ) : (
+                <MaterialIcons
+                  name={"favorite-outline"}
+                  size={30}
+                  color={"red"}
+                />
+              )}
+
+              <Text style={{ fontSize: 8, marginTop: -5 }}>Favorite</Text>
+            </TouchableOpacity>
+          </View>
         </Card.Actions>
       </Card>
     );

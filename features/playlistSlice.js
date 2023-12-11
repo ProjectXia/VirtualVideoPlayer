@@ -9,9 +9,16 @@ export const playlistSlice = createSlice({
   initialState,
   reducers: {
     addToPlaylist: (state, action) => {
-      state.items = [...state.items, action.payload];
-      // ...state.items means keep what is in playlist
-      // action.payload mean this append to end
+      const newItem = action.payload;
+      const isDuplicate = state.items.some((item) => item.id === newItem.id);
+
+      if (!isDuplicate) {
+        state.items = [...state.items, newItem];
+      } else {
+        console.warn(
+          `Item with ID ${newItem.id} already exists in the playlist.`
+        );
+      }
     },
     removeFromPlaylist: (state, action) => {
       const index = state.items.findIndex(
@@ -38,8 +45,5 @@ export const selectPlaylistItems = (state) => state.playlist.items;
 
 export const selectPlaylistItemsWithId = (state, id) =>
   state.playlist.items.filter((item) => item.id === id);
-
-// export const selectPlaylistTotal = (state) =>
-//   state.playlist.items.reduce((total, item) => (total += item.price), 0);
 
 export default playlistSlice.reducer;

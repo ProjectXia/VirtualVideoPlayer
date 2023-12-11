@@ -1,100 +1,232 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Image,
   FlatList,
+  TouchableOpacity,
 } from "react-native";
+import { MaterialIcons, AntDesign } from "@expo/vector-icons";
+import { Button } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Video, ResizeMode } from "expo-av";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  removeFromPlaylist,
+  selectPlaylistItems,
+} from "../features/playlistSlice";
 
 const PlaylistScreen = () => {
-  const [fileContent, setFileContent] = useState([]);
-  const [httpsLinks, setHttpsLinks] = useState([]);
-  const [extInfLines, setExtInfLines] = useState([]);
+  //
+  const videoRef = useRef(null);
+  const [isPlayAll, setIsPlayAll] = useState(false);
+  const [clicked, setClicked] = useState(false);
+  const [currentPlaylistIndex, setCurrentPlaylistIndex] = useState(0); // Keep track of current item being played
 
-  useEffect(() => {
-    const url = "http://103.186.77.21:8000/playlist.m3u8"; // Replace with the actual URL
+  const selectPlaylist = useSelector(selectPlaylistItems);
+  const dispatch = useDispatch();
 
-    const fetchData = async () => {
-      const response = await fetch(url)
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return res.text();
-        })
-        .then((text) => {
-          const lines = text.split("\n");
-          const regexHttp = /^http.*\.m3u8$/;
-          const regexExtinf = /^#EXTINF/;
+  //console.log(selectPlaylist[0]);
 
-          const filteredLines = [];
-          const extinfLiness = [];
+  const handlePlaybackStatusUpdate = (status) => {
+    if (status.didJustFinish && isPlayAll) {
+      playNextItem();
+    }
+  };
 
-          lines.forEach((line) => {
-            if (regexHttp.test(line)) {
-              filteredLines.push(line);
-            } else if (regexExtinf.test(line)) {
-              const parts = line.split("#EXTINF:-1,");
-              extinfLiness.push(parts.length > 1 ? parts[1] : "");
-            }
-          });
+  const playNextItem = async () => {
+    if (currentPlaylistIndex + 1 < selectPlaylist.length) {
+      setCurrentPlaylistIndex(currentPlaylistIndex + 1);
+      await videoRef.current.playAsync();
+    } else {
+      setIsPlayAll(false);
+      setCurrentPlaylistIndex(0);
+      await videoRef.current.pauseAsync();
+    }
+  };
 
-          const combinedArray = filteredLines.map((http, index) => ({
-            http: http,
-            name: extinfLiness[index] || "", // Ensure matching extinf or empty string if not available
-          }));
+  const handlePlayAll = async () => {
+    if (!isPlayAll && selectPlaylist.length > 0) {
+      setIsPlayAll(true);
+      setCurrentPlaylistIndex(0);
+      await videoRef.current.playAsync();
+    } else {
+      setIsPlayAll(false);
+      setCurrentPlaylistIndex(0);
+      await videoRef.current.pauseAsync();
+    }
+  };
 
-          // combinedArray will contain objects with corresponding http and extinf at the same index
-          // console.log(combinedArray);
-          setFileContent(combinedArray);
-        })
-        .catch((err) => {});
-    };
-    fetchData();
-  }, []);
+  const farward = async () => {
+    if (currentPlaylistIndex === selectPlaylist.length - 1) {
+      setCurrentPlaylistIndex(0);
+      await videoRef.current.pauseAsync();
+    } else {
+      setCurrentPlaylistIndex(currentPlaylistIndex + 1);
+    }
+  };
+
+  const backward = async () => {
+    if (currentPlaylistIndex === 0) {
+      setCurrentPlaylistIndex(selectPlaylist.length - 1);
+      await videoRef.current.pauseAsync();
+    } else {
+      setCurrentPlaylistIndex(currentPlaylistIndex - 1);
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>File Content:</Text>
-      <ScrollView>
-        <Text style={styles.title}>Extracted HTTPS Links:</Text>
-        {httpsLinks.map((line, index) => (
-          <Text key={index} style={styles.content}>
-            {line}
-          </Text>
-        ))}
-        <Text style={styles.title}>Extracted #EXTINF Lines:</Text>
-        {extInfLines.map((line, index) => (
-          <Text key={index} style={styles.content}>
-            {line}
-          </Text>
-        ))}
-        <Text style={styles.title}>Combine Lines:</Text>
-        {fileContent.map((line, index) => (
-          <Text key={index} style={styles.content}>
-            {line.name} {"\n"}
-            {line.http}
-          </Text>
-        ))}
-      </ScrollView>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <View style={{ width: "100%", height: 270, backgroundColor: "#F2F1EB" }}>
+        <Video
+          ref={videoRef}
+          source={{
+            uri:
+              selectPlaylist.length === 0
+                ? ""
+                : selectPlaylist[currentPlaylistIndex].http,
+          }}
+          style={{
+            width: "100%",
+            height: 270,
+          }}
+          shouldPlay={false}
+          usePoster={true}
+          isMuted={false}
+          resizeMode={ResizeMode.CONTAIN}
+          useNativeControls={clicked}
+          onError={(err) => {
+            console.log(err);
+          }}
+          posterSource={{
+            uri: "https://media3.giphy.com/media/MydKZ8HdiPWALc0Lqf/giphy.gif",
+          }}
+          posterStyle={{
+            width: "100%",
+            height: 300,
+            backgroundColor: "#FFFBF5",
+          }}
+          onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+        />
+
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: 210,
+            justifyContent: "center",
+          }}
+          onPress={() => {
+            setClicked(!clicked);
+          }}
+        >
+          {clicked && (
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                paddingHorizontal: 20,
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => {
+                  backward();
+                }}
+              >
+                <AntDesign name="stepbackward" size={30} color={"white"} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  farward();
+                }}
+              >
+                <AntDesign name="stepforward" size={30} color={"white"} />
+              </TouchableOpacity>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          backgroundColor: "#EEEDED",
+          paddingVertical: 5,
+          paddingHorizontal: 5,
+          marginBottom: 10,
+        }}
+      >
+        <MaterialIcons name="playlist-play" size={30} />
+        <Text style={styles.title}> Playlist [{selectPlaylist.length}] </Text>
+        <TouchableOpacity
+          onPress={() => {
+            if (selectPlaylist.length === 0) {
+              return;
+            }
+            handlePlayAll();
+          }}
+        >
+          {isPlayAll ? (
+            <Button icon={"stop"} mode="contained-tonal">
+              Stop all
+            </Button>
+          ) : (
+            <Button icon={"play"} mode="contained-tonal">
+              Play all
+            </Button>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={selectPlaylist}
+        horizontal={false}
+        renderItem={({ item, index }) => {
+          return (
+            <TouchableOpacity
+              onPress={() => {
+                setCurrentPlaylistIndex(index);
+              }}
+            >
+              <Image
+                source={{ uri: item.logo }}
+                width={190}
+                height={190}
+                style={
+                  index === currentPlaylistIndex
+                    ? { margin: 2, borderColor: "red", borderWidth: 2 }
+                    : { margin: 2 }
+                }
+              />
+              <TouchableOpacity
+                style={{ position: "absolute", right: 5, top: 5 }}
+                onPress={() => {
+                  dispatch(removeFromPlaylist({ id: item.id }));
+                }}
+              >
+                <MaterialIcons name="cancel" size={35} color={"red"} />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          );
+        }}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+      />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingVertical: 5,
   },
   title: {
     fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 10,
-  },
-  content: {
-    marginTop: 5,
+    marginLeft: 10,
   },
 });
 
