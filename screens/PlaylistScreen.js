@@ -214,6 +214,26 @@ const PlaylistScreen = () => {
         }}
         keyExtractor={(item) => item.id}
         numColumns={2}
+        ListEmptyComponent={
+          <View
+            style={{
+              height: 300,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Image
+              source={{
+                uri: "https://i.pinimg.com/originals/69/f0/c4/69f0c4bf1628e22dfdb8248fa479503b.jpg",
+              }}
+              width={150}
+              height={150}
+            />
+            <Text style={{ fontSize: 16, color: "gray", fontWeight: "600" }}>
+              Play list is empty
+            </Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -223,6 +243,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingVertical: 5,
+    backgroundColor: "white",
   },
   title: {
     fontSize: 18,

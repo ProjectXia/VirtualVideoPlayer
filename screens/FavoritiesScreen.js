@@ -16,9 +16,8 @@ const FavoritiesScreen = () => {
     <View
       style={{
         flex: 1,
-        marginVertical: 10,
-        marginTop: 35,
-        borderWidth: 2,
+        marginTop: 45,
+        backgroundColor: "white",
       }}
     >
       <View
@@ -34,7 +33,7 @@ const FavoritiesScreen = () => {
         }}
       >
         <MaterialIcons name="favorite" size={30} color={"red"} />
-        <Text style={{ fontSize: 18, paddingLeft: 30 }}>
+        <Text style={{ fontSize: 20, fontWeight: "800", paddingLeft: 20 }}>
           List of Favorities [{selectFav.length}]
         </Text>
       </View>
@@ -69,6 +68,26 @@ const FavoritiesScreen = () => {
         }}
         keyExtractor={(item) => item.id}
         numColumns={2}
+        ListEmptyComponent={
+          <View
+            style={{
+              height: 500,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Image
+              source={{
+                uri: "https://i.pinimg.com/originals/69/f0/c4/69f0c4bf1628e22dfdb8248fa479503b.jpg",
+              }}
+              width={150}
+              height={150}
+            />
+            <Text style={{ fontSize: 16, color: "gray", fontWeight: "600" }}>
+              Favorities list is Empty
+            </Text>
+          </View>
+        }
       />
     </View>
   );

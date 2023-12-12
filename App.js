@@ -13,6 +13,7 @@ import SettingsScreen from "./screens/SettingsScreen";
 import PlayScreen from "./screens/PlayScreen";
 import PlaylistScreen from "./screens/PlaylistScreen";
 import FavoritiesScreen from "./screens/FavoritiesScreen";
+import AboutScreen from "./screens/AboutScreen";
 
 function Home() {
   return (
@@ -70,6 +71,11 @@ export default function App() {
           <Stack.Screen
             name="Play"
             component={PlayScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="About"
+            component={AboutScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
