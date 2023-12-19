@@ -27,7 +27,7 @@ const LibraryScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={{ marginTop: 20 }}>
+      <View>
         {/* ///////////// Header/////////////////////// */}
         <View
           style={{
@@ -88,28 +88,8 @@ const LibraryScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-  },
-  videoItem: {
-    flex: 1,
-    margin: 5,
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderRadius: 8,
-    backgroundColor: "#9BBEC8",
-    borderColor: "#427D9D",
-  },
-  videoThumbnail: {
-    width: 173,
-    height: 100,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-  },
-  button: {
-    marginRight: 5,
-  },
-  highlightedButton: {
-    backgroundColor: "#9BBEC8", // Change to the color you want when button is highlighted
+    paddingHorizontal: 5,
+    paddingVertical: 5,
   },
 });
 

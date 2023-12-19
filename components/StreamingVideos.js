@@ -1,6 +1,5 @@
 import {
   View,
-  FlatList,
   TextInput,
   TouchableOpacity,
   ScrollView,
@@ -9,7 +8,7 @@ import {
 import { Card, Text } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
-import { Ionicons, Entypo } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { setStream, setValue } from "../features/playSlice";
 import React, { useEffect, useState } from "react";
 
@@ -156,54 +155,56 @@ const StreamingVideos = () => {
 
   return (
     <SafeAreaView style={{ paddingHorizontal: 2 }}>
-      <View
-        style={{
-          flexDirection: "row",
-          marginVertical: 10,
-          paddingHorizontal: 6,
-          paddingVertical: 2,
-          borderWidth: 1,
-          borderColor: "#AE445A",
-          borderRadius: 20,
-          backgroundColor: "transparent",
-        }}
-      >
-        <TextInput
-          placeholder="Paste streaming url..."
+      <View>
+        <View
           style={{
-            height: 40,
-            paddingHorizontal: 10,
-            flex: 1,
-            backgroundColor: "transparent",
+            flexDirection: "row",
+            marginVertical: 10,
+            paddingHorizontal: 6,
+            paddingVertical: 2,
+            borderWidth: 1,
+            borderColor: "#AE445A",
             borderRadius: 20,
-            color: "#645CBB",
-            fontWeight: "600",
-          }}
-          onChangeText={(text) => setSearchQuery(text)}
-          value={searchQuery}
-        />
-        <TouchableOpacity
-          onPress={() => {
-            dispatch(setValue(searchQuery));
-            dispatch(setStream("URL"));
-            navigation.navigate("Play");
-            // console.log(item);
+            backgroundColor: "transparent",
           }}
         >
-          <Ionicons name="search" size={35} color={"#AE445A"} />
-        </TouchableOpacity>
+          <TextInput
+            placeholder="Paste streaming url..."
+            style={{
+              height: 40,
+              paddingHorizontal: 10,
+              flex: 1,
+              backgroundColor: "transparent",
+              borderRadius: 20,
+              color: "#645CBB",
+              fontWeight: "600",
+            }}
+            onChangeText={(text) => setSearchQuery(text)}
+            value={searchQuery}
+          />
+          <TouchableOpacity
+            onPress={() => {
+              dispatch(setValue(searchQuery));
+              dispatch(setStream("URL"));
+              navigation.navigate("Play");
+              // console.log(item);
+            }}
+          >
+            <Ionicons name="search" size={35} color={"#AE445A"} />
+          </TouchableOpacity>
+        </View>
+        <Text
+          style={{
+            fontSize: 10,
+            color: "gray",
+            alignSelf: "center",
+            marginTop: -5,
+            marginBottom: 10,
+          }}
+        >
+          e.g:https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+        </Text>
       </View>
-      <Text
-        style={{
-          fontSize: 10,
-          color: "gray",
-          alignSelf: "center",
-          marginTop: -5,
-          marginBottom: 10,
-        }}
-      >
-        e.g:https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
-      </Text>
       <ScrollView showsVerticalScrollIndicator={true}>
         <View style={{ height: 180, marginVertical: 3 }}>
           <View

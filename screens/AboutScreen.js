@@ -1,17 +1,10 @@
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  FlatList,
-  ScrollView,
-} from "react-native";
-import { MaterialIcons, AntDesign } from "@expo/vector-icons";
+import { View, Text, ScrollView, SafeAreaView } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 
 const AboutScreen = () => {
   return (
-    <View style={{ flex: 1, marginTop: 45 }}>
+    <SafeAreaView style={{ flex: 1 }}>
       <View
         style={{
           flexDirection: "row",
@@ -109,7 +102,7 @@ const AboutScreen = () => {
           </Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 const styles = {
