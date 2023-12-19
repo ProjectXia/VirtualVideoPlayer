@@ -13,7 +13,11 @@ import { Button, Card } from "react-native-paper";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { setStream, setValue } from "../features/playSlice";
-import { addToPlaylist } from "../features/playlistSlice";
+import {
+  addToPlaylist,
+  removeFromPlaylist,
+  selectPlaylistItems,
+} from "../features/playlistSlice";
 import {
   addTofavlist,
   removeFromfavlist,
@@ -28,6 +32,7 @@ const LocalVideos = () => {
 
   const navigation = useNavigation();
   const allfavlist = useSelector(selectfavlistItems);
+  const allPlayList = useSelector(selectPlaylistItems);
   const dispatch = useDispatch();
 
   const handleButtonPress = () => {
@@ -79,6 +84,9 @@ const LocalVideos = () => {
     const isItemFavorite = allfavlist.some(
       (element) => element.http === item.uri
     );
+    const isItemInPlaylist = allPlayList.some(
+      (element) => element.http === item.uri
+    );
     return (
       <Card style={{ margin: 2, width: 182.5 }}>
         <TouchableOpacity
@@ -119,10 +127,27 @@ const LocalVideos = () => {
                   http: item.uri,
                 };
                 // console.log(data);
-                dispatch(addToPlaylist(data));
+                if (isItemInPlaylist) {
+                  dispatch(removeFromPlaylist({ id: index }));
+                } else {
+                  dispatch(addToPlaylist(data));
+                }
               }}
             >
-              <MaterialIcons name="playlist-add" size={30} color={"green"} />
+              {isItemInPlaylist ? (
+                <MaterialIcons
+                  name="playlist-add-check"
+                  size={30}
+                  color={"green"}
+                />
+              ) : (
+                <MaterialIcons
+                  name="playlist-add"
+                  size={30}
+                  color={"lightgray"}
+                />
+              )}
+
               <Text style={{ fontSize: 8, marginTop: -5 }}>Playlist</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -148,7 +173,7 @@ const LocalVideos = () => {
                 <MaterialIcons
                   name={"favorite-outline"}
                   size={30}
-                  color={"red"}
+                  color={"lightgray"}
                 />
               )}
 
