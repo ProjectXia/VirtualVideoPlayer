@@ -27,8 +27,6 @@ const PlaylistScreen = () => {
   const selectPlaylist = useSelector(selectPlaylistItems);
   const dispatch = useDispatch();
 
-  //console.log(selectPlaylist[0]);
-
   const handlePlaybackStatusUpdate = (status) => {
     if (status.didJustFinish && isPlayAll) {
       playNextItem();

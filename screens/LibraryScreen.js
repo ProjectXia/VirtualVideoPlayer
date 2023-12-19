@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import Toggle from "react-native-toggle-element";
 import LocalVideos from "../components/LocalVideos";
 import StreamingVideos from "../components/StreamingVideos";
@@ -80,7 +80,7 @@ const LibraryScreen = () => {
         </View>
         {/* ///////////////////Header END//////////////// */}
       </View>
-      {isLocal ? <LocalVideos /> : <StreamingVideos />}
+      <ScrollView>{isLocal ? <LocalVideos /> : <StreamingVideos />}</ScrollView>
     </View>
   );
 };

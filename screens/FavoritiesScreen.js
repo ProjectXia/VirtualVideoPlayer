@@ -1,4 +1,11 @@
-import { View, Text, Image, TouchableOpacity, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  SafeAreaView,
+} from "react-native";
 import { MaterialIcons, AntDesign } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -13,10 +20,9 @@ const FavoritiesScreen = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   return (
-    <View
+    <SafeAreaView
       style={{
         flex: 1,
-        marginTop: 45,
         backgroundColor: "white",
       }}
     >
@@ -89,7 +95,7 @@ const FavoritiesScreen = () => {
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

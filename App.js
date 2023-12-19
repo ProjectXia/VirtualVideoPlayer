@@ -14,6 +14,7 @@ import PlayScreen from "./screens/PlayScreen";
 import PlaylistScreen from "./screens/PlaylistScreen";
 import FavoritiesScreen from "./screens/FavoritiesScreen";
 import AboutScreen from "./screens/AboutScreen";
+import TourScreen from "./screens/TourScreen";
 
 function Home() {
   return (
@@ -60,9 +61,14 @@ function Home() {
 
 export default function App() {
   return (
-    <Provider store={store}>
-      <NavigationContainer>
+    <NavigationContainer>
+      <Provider store={store}>
         <Stack.Navigator>
+          <Stack.Screen
+            name="Tour"
+            component={TourScreen}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="Home"
             component={Home}
@@ -79,7 +85,7 @@ export default function App() {
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
-      </NavigationContainer>
-    </Provider>
+      </Provider>
+    </NavigationContainer>
   );
 }

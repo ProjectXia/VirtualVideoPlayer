@@ -1,4 +1,11 @@
-import { View, FlatList, TextInput, TouchableOpacity } from "react-native";
+import {
+  View,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  SafeAreaView,
+} from "react-native";
 import { Card, Text } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch } from "react-redux";
@@ -15,7 +22,7 @@ const StreamingVideos = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  const renderItem = ({ item }) => {
+  const renderItem = (item, index) => {
     return (
       <Card
         style={{
@@ -25,6 +32,7 @@ const StreamingVideos = () => {
           elevation: 1,
           marginHorizontal: 5,
         }}
+        key={index}
       >
         <TouchableOpacity
           onPress={() => {
@@ -48,39 +56,7 @@ const StreamingVideos = () => {
       </Card>
     );
   };
-  const renderSportsItem = ({ item }) => {
-    return (
-      <Card
-        style={{
-          margin: 2,
-          width: 115.5,
-          height: 135,
-          elevation: 1,
-          marginHorizontal: 5,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => {
-            dispatch(setValue(item.http));
-            dispatch(setStream("URL"));
-            navigation.navigate("Play");
-            console.log(item);
-          }}
-        >
-          <Card.Cover
-            source={{
-              uri: item.logo,
-            }}
-            style={{ height: 135, width: 115, padding: 3 }}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-        {/* <Card.Content>
-          <Text style={{ fontSize: 10, fontWeight: "800" }}>{item.name}</Text>
-        </Card.Content> */}
-      </Card>
-    );
-  };
+
   const fetchNewsData = async () => {
     try {
       const response = await fetch(
@@ -137,35 +113,6 @@ const StreamingVideos = () => {
       console.error("Error fetching the file:", error);
     }
   };
-  // const fetchSportsData = async () => {
-  //   try {
-  //     const response = await fetch(
-  //       "https://raw.githubusercontent.com/ProjectXia/images/main/sports.m3u8"
-  //     );
-  //     if (!response.ok) {
-  //       throw new Error("Network response was not ok");
-  //     }
-  //     const text = await response.text();
-  //     const lines = text.split("\n");
-  //     const parsedData = lines
-  //       .map((line) => {
-  //         if (line.length < 1) {
-  //           return;
-  //         }
-  //         const parts = line.split(","); // Splitting by the first comma
-  //         const logo = parts[0]; // Splitting name and logo section
-  //         const name = parts[1];
-  //         const http = parts[2]?.trim(); // Assuming the URL is in the third part
-  //         return { name, logo, http };
-  //       })
-  //       .filter(Boolean);
-  //     setFileSportsContent(parsedData);
-  //     console.log("Sports: " + parsedData.length);
-  //   } catch (error) {
-  //     console.error("Error fetching the file:", error);
-  //   }
-  // };
-
   const fetchSportsData = () => {
     fetch(
       "https://raw.githubusercontent.com/ProjectXia/images/main/sports.m3u8"
@@ -199,13 +146,16 @@ const StreamingVideos = () => {
   };
 
   useEffect(() => {
-    fetchNewsData();
-    fetchKidsData();
-    fetchSportsData();
+    if (fileChannelContent > 0) {
+    } else {
+      fetchNewsData();
+      fetchKidsData();
+      fetchSportsData();
+    }
   }, []);
 
   return (
-    <View style={{ paddingHorizontal: 2 }}>
+    <SafeAreaView style={{ paddingHorizontal: 2 }}>
       <View
         style={{
           flexDirection: "row",
@@ -254,73 +204,78 @@ const StreamingVideos = () => {
       >
         e.g:https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
       </Text>
-      <View style={{ height: 180, marginVertical: 3 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
-            NEWS Channels [{fileChannelContent.length}]
-          </Text>
-          <TouchableOpacity onPress={fetchNewsData}>
-            <Ionicons name="refresh-circle-outline" size={35} color={"gray"} />
-          </TouchableOpacity>
+      <ScrollView showsVerticalScrollIndicator={true}>
+        <View style={{ height: 180, marginVertical: 3 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
+              NEWS Channels [{fileChannelContent.length}]
+            </Text>
+            <TouchableOpacity onPress={fetchNewsData}>
+              <Ionicons
+                name="refresh-circle-outline"
+                size={35}
+                color={"gray"}
+              />
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal={true}>
+            {fileChannelContent.map((item, index) => renderItem(item, index))}
+          </ScrollView>
         </View>
-        <FlatList
-          data={fileChannelContent}
-          renderItem={renderItem}
-          // keyExtractor={(item) => item.id}
-          horizontal={true}
-        />
-      </View>
-      <View style={{ height: 180, marginVertical: 3 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
-            Kids Channels [{fileKidsContent.length}]
-          </Text>
-          <TouchableOpacity onPress={fetchKidsData}>
-            <Ionicons name="refresh-circle-outline" size={35} color={"gray"} />
-          </TouchableOpacity>
+        <View style={{ height: 180, marginVertical: 3 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
+              Kids Channels [{fileKidsContent.length}]
+            </Text>
+            <TouchableOpacity onPress={fetchKidsData}>
+              <Ionicons
+                name="refresh-circle-outline"
+                size={35}
+                color={"gray"}
+              />
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal={true}>
+            {fileKidsContent.map((item, index) => renderItem(item, index))}
+          </ScrollView>
         </View>
-        <FlatList
-          data={fileKidsContent}
-          renderItem={renderItem}
-          // keyExtractor={(item) => item.id}
-          horizontal={true}
-        />
-      </View>
-      <View style={{ height: 180, marginVertical: 3 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
-            Sports Channels [{fileSportsContent.length}]
-          </Text>
-          <TouchableOpacity onPress={fetchSportsData}>
-            <Ionicons name="refresh-circle-outline" size={35} color={"gray"} />
-          </TouchableOpacity>
+        <View style={{ height: 180, marginVertical: 3 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ fontSize: 20, fontWeight: "800", color: "gray" }}>
+              Sports Channels [{fileSportsContent.length}]
+            </Text>
+            <TouchableOpacity onPress={fetchSportsData}>
+              <Ionicons
+                name="refresh-circle-outline"
+                size={35}
+                color={"gray"}
+              />
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal={true}>
+            {fileSportsContent.map((item, index) => renderItem(item, index))}
+          </ScrollView>
         </View>
-        <FlatList
-          data={fileSportsContent}
-          renderItem={renderItem}
-          // keyExtractor={(item) => item.id}
-          horizontal={true}
-        />
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

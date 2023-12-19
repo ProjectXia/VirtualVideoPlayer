@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -20,10 +22,18 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "Permissions": ["READ_EXTERNAL_STORAGE"]
+      "Permissions": [
+        "READ_EXTERNAL_STORAGE"
+      ],
+      "package": "com.ziaulm.VirtualVideoPlayer"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9f08063f-de25-4652-9f4b-b4dfc278c4e9"
+      }
     }
   }
 }
